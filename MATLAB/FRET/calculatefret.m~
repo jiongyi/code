@@ -1,0 +1,28 @@
+function effIm = calculatefret(fretStackIm)
+    % Split stack to images.
+    donorIm = fretStackIm(:, :, 1);
+    fretIm = fretStackIm(:, :, 2);
+    acceptorIm = fretStackIm(:, :, 3);
+    
+    % Subtract background.
+    donorIm = dogfilter(donorIm);
+    fretIm = dogfilter(fretIm);
+    acceptorIm = dogfilter(acceptorIm);
+    % Correct for bleed-through and cross-talk.
+    a = 0.47;
+    b = 0.18;
+    corrIm = imsubtract(fretIm, a * donorIm);
+    corrIm = imsubtract(corrIm, b * acceptorIm);
+    corrIm(corrIm <= 0) = 0;
+    % Figure out positive regions.
+    aIm = mat2gray(donorIm);
+    bwIm = im2bw(normIm, graythresh(normIm));
+    figure; imshow(bwperim(bwIm));
+    % Calculate FRET efficiency.
+    effIm = corrIm ./ (corrIm + donorIm);
+    effIm(isnan(effIm)) = 0;
+    effIm(isinf(effIm)) = 0;
+    effIm(~bwIm) = 0;
+    effIm = imfilter(effIm, fspecial('gaussian', 15, 5), 'symmetric');
+    figure; imagesc(effIm); colorbar; axis square off;
+end
