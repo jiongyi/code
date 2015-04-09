@@ -1,8 +1,8 @@
-function fretStackIm = loadimages()
+function fretStackStruct = loadimages(filePathStr)
 % Get file names.
-[cfpFileNameStr, folderNameStr] = uigetfile('*CFP.tiff', ...
-'Select donor channel file', ...
-'/home/jiongyi/VirtualShare/');
+[folderNameStr, cfpFileNameStr, ext] = fileparts(filePathStr);
+folderNameStr = [folderNameStr,  '/'];
+cfpFileNameStr = [cfpFileNameStr, ext]; 
 yfpFileNameStr = [cfpFileNameStr(1 : end - 8), 'YFP.tiff'];
 fretFileNameStr = [cfpFileNameStr(1 : end - 8), 'yFRET.tiff'];
 
@@ -11,21 +11,30 @@ cfpIm = double(imread([folderNameStr, cfpFileNameStr]));
 yfpIm = double(imread([folderNameStr, yfpFileNameStr]));
 fretIm = double(imread([folderNameStr, fretFileNameStr]));
 
+
 % Load flat-field correction files and normalize to mean.
 flatFolderNameStr = '/home/jiongyi/Documents/MATLAB/fret/';
 cfpFlatIm = double(imread([flatFolderNameStr, 'acceptorFlatIm.tiff']));
-% cfpFlatIm = cfpFlatIm / mean(cfpFlatIm(:));
 yfpFlatIm = double(imread([flatFolderNameStr, 'donorFlatIm.tiff']));
-% yfpFlatIm = yfpFlatIm / mean(yfpFlatIm(:));
 fretFlatIm = double(imread([flatFolderNameStr, 'fretFlatIm.tiff']));
-% fretFlatIm = fretFlatIm / mean(fretFlatIm(:));
 
-% Flat-field correction.
-cfpIm = cfpIm - cfpFlatIm;
-cfpIm(isinf(cfpIm)) = 0;
-yfpIm = yfpIm - yfpFlatIm;
-yfpIm(isinf(yfpIm)) = 0;
-fretIm = fretIm - fretFlatIm;
-fretIm(isinf(fretIm)) = 0;
-fretStackIm = cat(3, cfpIm, yfpIm, fretIm);
+% Flat-field/background correction.
+% cfpIm = cfpIm - cfpFlatIm;
+% cfpIm(cfpIm < 0) = 0;
+% yfpIm = yfpIm - yfpFlatIm;
+% yfpIm(yfpIm < 0) = 0;
+% fretIm = fretIm - fretFlatIm;
+% fretIm(fretIm < 0) = 0;
+
+cfpIm = cfpIm ./ cfpFlatIm * mean(cfpFlatIm(:));
+fretIm = fretIm ./ fretFlatIm * mean(fretFlatIm(:));
+yfpIm = yfpIm ./ yfpFlatIm * mean(yfpFlatIm(:));
+
+% Build structure.
+fretStackStruct.donorIm = cfpIm;
+fretStackStruct.fretIm = fretIm;
+fretStackStruct.acceptorIm = yfpIm;
+fretStackStruct.nameStr = cfpFileNameStr(1 : end - 9);
+fretStackStruct.folderNameStr = folderNameStr;
+
 end

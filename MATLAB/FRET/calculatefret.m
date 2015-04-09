@@ -1,29 +1,41 @@
-function idxFretIm = calculatefret(fretStackIm)
+function calculatefret(filePathStr)
+
+    fretStackStruct = loadimages(filePathStr);
     % Split stack to images.
-    donorIm = fretStackIm(:, :, 1);
-    fretIm = fretStackIm(:, :, 2);
-    acceptorIm = fretStackIm(:, :, 3);
+    donorIm = fretStackStruct.donorIm;
+    fretIm = fretStackStruct.fretIm;
+    acceptorIm = fretStackStruct.acceptorIm;
     
     % Subtract background.
-    donorIm = dogfilter(donorIm);
+    [donorIm, bwIm] = dogfilter(donorIm);
     fretIm = dogfilter(fretIm);
     acceptorIm = dogfilter(acceptorIm);
+    
     % Correct for bleed-through and cross-talk.
-    a = 0.47;
-    b = 0.18;
-    corrIm = imsubtract(fretIm, a * donorIm);
-    corrIm = imsubtract(corrIm, b * acceptorIm);
-    corrIm(corrIm <= 0) = 0;
-    % Figure out positive regions.
-    normIm = mat2gray(mean(cat(3, donorIm, corrIm, acceptorIm), 3));
-    bwIm = im2bw(normIm, graythresh(normIm));
+%     a = 0.47;
+%     b = 0.18;
+    a = 0.5;
+    b = 0.2;
+    corrIm = fretIm - a * donorIm - b * acceptorIm;
+    
+    % Suppress non-sense pixel intensity values.
+    corrIm(corrIm < 0) = 0;
+    
     % Calculate FRET index.
-    idxFretIm = corrIm ./ acceptorIm;
+    normIm = corrIm + donorIm; % like in Borghi et al PNAS 2012.
+%     bwIm = im2bw(mat2gray(normIm), graythresh(mat2gray(normIm)));
+    idxFretIm = corrIm ./ normIm;
     idxFretIm(isnan(idxFretIm)) = 0;
-    idxFretIm(isinf(idxFretIm)) = 0;
-    idxFretIm(~bwIm) = 0;
-    idxFretIm = imfilter(idxFretIm, fspecial('average', 6), ...
-'symmetric');
-    figure('color', 'w'); imagesc(idxFretIm); colorbar; axis square off;
-    title('FRET index');
+    idxFretIm(idxFretIm == inf) = 0;
+    idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 6, 2), ...
+        'replicate');
+    idxFretIm(bwIm) = 0;
+    
+%     % Display results.
+    overIm = imoverlay(mat2gray(donorIm), bwperim(~bwIm), [0, 1, 0]);
+    figure('color', 'w'); imshowpair(overIm, ...
+        label2rgb(round(10 * idxFretIm)), 'montage'); colorbar;
+    title(fretStackStruct.nameStr);
+    print(gcf, '-dpng', '-r600', [fretStackStruct.folderNameStr, ...
+        fretStackStruct.nameStr, '_fret_ratio']);
 end
