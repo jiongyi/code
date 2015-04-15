@@ -8,9 +8,11 @@ normIm = mat2gray(diskFiltIm);
 % At least two levels are necessary to take care of multiple cells in FOV.
 threshold = multithresh(normIm, 2);
 seg_I = imquantize(normIm, threshold);
-bwIm = seg_I ~= 1;
 
 % Subtract background.
-backSubIm = rawIm - mean(rawIm(~bwIm));
+% rawIm = medfilt2(rawIm);
+backSubIm = rawIm - mea(rawIm(seg_I == 1));
 backSubIm(backSubIm < 0) = 0;
+bwIm = seg_I > 1;
+disp(mean(backSubIm(seg_I == 1)))
 end

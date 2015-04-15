@@ -22,19 +22,18 @@ function calculatefret(filePathStr)
     corrIm(corrIm < 0) = 0;
     
     % Calculate FRET index.
-    normIm = corrIm + donorIm; % like in Borghi et al PNAS 2012.
+    normIm = corrIm + sqrt(donorIm .* acceptorIm); % like in Borghi et al PNAS 2012.
 %     bwIm = im2bw(mat2gray(normIm), graythresh(mat2gray(normIm)));
     idxFretIm = corrIm ./ normIm;
     idxFretIm(isnan(idxFretIm)) = 0;
     idxFretIm(idxFretIm == inf) = 0;
-    idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 6, 2), ...
+    idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 7, 2), ...
         'replicate');
-    idxFretIm(bwIm) = 0;
+    idxFretIm(~bwIm) = 0;
     
 %     % Display results.
-    overIm = imoverlay(mat2gray(donorIm), bwperim(~bwIm), [0, 1, 0]);
-    figure('color', 'w'); imshowpair(overIm, ...
-        label2rgb(round(10 * idxFretIm)), 'montage'); colorbar;
+    overIm = imoverlay(mat2gray(normIm), bwperim(~bwIm), [0, 1, 0]);
+    figure('color', 'w'); imshowpair(overIm, label2rgb(round(10 * idxFretIm)), 'montage'); colorbar;
     title(fretStackStruct.nameStr);
     print(gcf, '-dpng', '-r600', [fretStackStruct.folderNameStr, ...
         fretStackStruct.nameStr, '_fret_ratio']);

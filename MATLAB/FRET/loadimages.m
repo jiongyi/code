@@ -7,16 +7,16 @@ yfpFileNameStr = [cfpFileNameStr(1 : end - 8), 'YFP.tiff'];
 fretFileNameStr = [cfpFileNameStr(1 : end - 8), 'yFRET.tiff'];
 
 % Load images.
-cfpIm = double(imread([folderNameStr, cfpFileNameStr]));
-yfpIm = double(imread([folderNameStr, yfpFileNameStr]));
-fretIm = double(imread([folderNameStr, fretFileNameStr]));
+cfpIm = im2double(imread([folderNameStr, cfpFileNameStr]));
+yfpIm = im2double(imread([folderNameStr, yfpFileNameStr]));
+fretIm = im2double(imread([folderNameStr, fretFileNameStr]));
 
 
 % Load flat-field correction files and normalize to mean.
 flatFolderNameStr = '/home/jiongyi/Documents/MATLAB/fret/';
-cfpFlatIm = double(imread([flatFolderNameStr, 'acceptorFlatIm.tiff']));
-yfpFlatIm = double(imread([flatFolderNameStr, 'donorFlatIm.tiff']));
-fretFlatIm = double(imread([flatFolderNameStr, 'fretFlatIm.tiff']));
+cfpFlatIm = im2double(imread([flatFolderNameStr, 'acceptorFlatIm.tiff']));
+yfpFlatIm = im2double(imread([flatFolderNameStr, 'donorFlatIm.tiff']));
+fretFlatIm = im2double(imread([flatFolderNameStr, 'fretFlatIm.tiff']));
 
 % Flat-field/background correction.
 % cfpIm = cfpIm - cfpFlatIm;
