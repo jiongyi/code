@@ -22,7 +22,7 @@ function calculatefret(filePathStr)
     corrIm(corrIm < 0) = 0;
     
     % Calculate FRET index.
-    normIm = corrIm + sqrt(donorIm .* acceptorIm); % like in Borghi et al PNAS 2012.
+    normIm = corrIm + donorIm; % like in Borghi et al PNAS 2012.
 %     bwIm = im2bw(mat2gray(normIm), graythresh(mat2gray(normIm)));
     idxFretIm = corrIm ./ normIm;
     idxFretIm(isnan(idxFretIm)) = 0;
