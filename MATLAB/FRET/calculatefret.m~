@@ -22,17 +22,22 @@ function calculatefret(filePathStr)
     corrIm(corrIm < 0) = 0;
     
     % Calculate FRET index.
-    normIm = corrIm + donorIm; % like in Borghi et al PNAS 2012.
+    normIm = corrIm + sqrt(acceptorIm .* donorIm); % like in Borghi et al PNAS 2012.
+%     bwIm = im2bw(mat2gray(normIm), graythresh(mat2gray(normIm)));
     idxFretIm = corrIm ./ normIm;
     idxFretIm(isnan(idxFretIm)) = 0;
     idxFretIm(idxFretIm == inf) = 0;
     idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 7, 2), ...
         'replicate');
     idxFretIm(~bwIm) = 0;
+    
 %     % Display results.
-    noLevels = 11;
-    thresholdRow = multithresh(idxFretIm, noLevels - 1);
-    labeledIm = imquantize(idxFretIm, thresholdRow);
+    noLevels = 6;
+    thresholdRow = multithresh(acceptorIm, noLevels - 1);
+    labeledIm = imquantize(acceptorIm, thresholdRow);
+%     title(fretStackStruct.nameStr);
+%     print(gcf, '-dpng', '-r600', [fretStackStruct.folderNameStr, ...
+%         fretStackStruct.nameStr, '_fret_ratio']);
     meanIdxFretRow = arrayfun(@(x) mean(idxFretIm(labeledIm == x)), ...
         1 : noLevels);
     meanIdxFretIm = zeros(size(acceptorIm));
@@ -43,15 +48,10 @@ function calculatefret(filePathStr)
     for i = 1 : noLevels
         labeledIm(labeledIm == i) = idxRow(i);
     end
-    colorMap = jet(noLevels);
+    colorMap = hsv(noLevels);
     colorMap(1, :) = [1, 1, 1];
-    figure('color', 'white');
-    labelCell = arrayfun(@(x) num2str(x, 2), (meanIdxFretRow(idxRow)), ...
-        'UniformOutput', false);
+    figure;
+    labelarrayfun(@(x) num2str(x, 2), (meanIdxFretRow(idxRow)), 'UniformOutput', false)
     imshow(labeledIm, colorMap); colorbar(...
-        'Ytick', 1 : noLevels, 'YTickLabel', labelCell); axis square off;
-    title(fretStackStruct.nameStr);
-    print(gcf, '-dpng', '-r600', [fretStackStruct.folderNameStr, ...
-        fretStackStruct.nameStr, '_fret_ratio']);
-
+        'Ytick', 1 : noLevels, 'YTickLabel', {num2str(meanIdxFretRow(idxRow))});
 end
