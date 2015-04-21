@@ -56,7 +56,7 @@ function calculatefret(filePathStr)
         fretStackStruct.nameStr, '_fret_ratio']);
     
 % Find plaques and display distribution of mean FRET indices.
-    isPlaqueIm = isPlaqueIm & bwIm;
+    isPla
     plaqueStruct = regionprops(isPlaqueIm, idxFretIm, 'MeanIntensity', ...
         'Area', 'PixelValues');
     plaqueFretRow = [plaqueStruct(:).MeanIntensity];

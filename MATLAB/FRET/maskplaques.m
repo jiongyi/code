@@ -1,4 +1,4 @@
-function maskplaques(rawIm, objPixWidth)
+function isPlaqueIm = maskplaques(rawIm, objPixWidth)
 
 % Convert and double and scale to [0, 1].
 rawIm = im2double(rawIm);
@@ -22,12 +22,12 @@ maxIm = imextendedmax(snrIm, 0.5 * std(snrIm(bwIm)));
 compIm = imcomplement(snrIm);
 modIm = imimposemin(compIm, ~bwIm | maxIm);
 shedIm = watershed(modIm);
-plaqueIm = shedIm > 1;
-plaqueIm = imclose(plaqueIm, strel('sq', 3));
+isPlaqueIm = shedIm > 1;
+isPlaqueIm = imclose(isPlaqueIm, strel('sq', 3));
 
 % Display result.
 figure('color', 'white');
 grayIm = imcomplement(mat2gray(rawIm));
-perimIm = bwperim(plaqueIm);
+perimIm = bwperim(isPlaqueIm);
 rbIm = grayIm .* ~perimIm;
 imshow(cat(3, grayIm, rbIm, grayIm));
