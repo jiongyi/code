@@ -8,7 +8,7 @@ rawIm = medfilt2(rawIm);
 % Apply difference-of-gaussian filter.
 psfFilteredIm = imfilter(rawIm, fspecial('gaussian', 3, 1), 'symmetric');
 backFilteredIm = imfilter(rawIm, ...
-    fspecial('average', objPixWidth), 'symmetric');
+    fspecial('gaussian', 3 * objPixWidth, objPixWidth), 'symmetric');
 dogIm = imsubtract(psfFilteredIm, backFilteredIm);
 dogIm(rawIm < 0) = 0;
 dogIm = mat2gray(dogIm);
@@ -17,11 +17,17 @@ dogIm = mat2gray(dogIm);
 bwIm = im2bw(dogIm, graythresh(dogIm));
 snrIm = dogIm / mean(dogIm(~bwIm));
 
-snrIm = snrIm - mean(snrIm(bwIm));
-snrIm(snrIm < 0) = 0;
-figure('color', 'w');
-imshow(snrIm, []);
-colorHandle = colorbar;
-colorTitleHandle = get(colorHandle, 'Title');
-set(colorTitleHandle, 'String', 'SNR');
-axis square off;
+% Watershed.
+maxIm = imextendedmax(snrIm, 0.5 * std(snrIm(bwIm)));
+compIm = imcomplement(snrIm);
+modIm = imimposemin(compIm, ~bwIm | maxIm);
+shedIm = watershed(modIm);
+plaqueIm = shedIm > 1;
+plaqueIm = imclose(plaqueIm, strel('sq', 3));
+
+% Display result.
+figure('color', 'white');
+grayIm = imcomplement(mat2gray(rawIm));
+perimIm = bwperim(plaqueIm);
+rbIm = grayIm .* ~perimIm;
+imshow(cat(3, grayIm, rbIm, grayIm));
