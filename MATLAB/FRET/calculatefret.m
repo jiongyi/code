@@ -27,8 +27,8 @@ function calculatefret(filePathStr)
     idxFretIm = corrIm ./ normIm;
     idxFretIm(isnan(idxFretIm)) = 0;
     idxFretIm(idxFretIm == inf) = 0;
-    idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 7, 2), ...
-        'symmetric');
+%     idxFretIm = imfilter(idxFretIm, fspecial('gaussian', 7, 2), ...
+%         'symmetric');
     idxFretIm(~bwIm) = 0;
 %     % Display results.
     noLevels = 11;
@@ -60,10 +60,12 @@ function calculatefret(filePathStr)
     plaqueStruct = regionprops(isPlaqueIm, idxFretIm, 'MeanIntensity', ...
         'Area', 'PixelValues');
     plaqueFretRow = [plaqueStruct(:).MeanIntensity];
+    median(plaqueFretRow)
     meanRadius = round(sqrt(mean([plaqueStruct(:).Area])));
     meanFretIdxIm = imfilter(idxFretIm, ...
         fspecial('average', meanRadius), 'symmetric');
     backMeanFretIdxRow = meanFretIdxIm(~isPlaqueIm & bwIm);
+    median(backMeanFretIdxRow)
     noPlaques = numel(plaqueStruct);
     backFretRow = datasample(backMeanFretIdxRow, noPlaques);
     figure('color', 'white');
@@ -72,7 +74,7 @@ function calculatefret(filePathStr)
     hold off;
     axis square;
     % Figure out appropriate significant value.
-    pRow = zeros(1, 100);
+    pRow = zeros(1, 200);
     for i = 1 : 100
         x1 = datasample(plaqueFretRow, noPlaques);
         x2 = datasample(plaqueFretRow, noPlaques);
