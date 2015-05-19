@@ -18,9 +18,10 @@ end
 
 idxFocused = find(meanAbsGradRow == max(meanAbsGradRow));
 focusedIm = stackMat(:, :, idxFocused(1));
-figure;
-imshow(focusedIm, []);
 maskIm = logmask(focusedIm, objWidth);
+figure('color', 'w');
+imshowpair(focusedIm, maskIm);
+axis equal off;
 end
 
 function maskIm = logmask(rawIm, objWidth)
