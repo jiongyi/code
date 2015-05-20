@@ -1,4 +1,4 @@
-function [focusedIm, maskIm] = findfocus(objWidth)
+function focusedIm = findfocus(objWidth)
 
 % Pick z-stack.
 [fileNameStr, folderNameStr] = uigetfile('*.TIF', ...
@@ -18,25 +18,4 @@ end
 
 idxFocused = find(meanAbsGradRow == max(meanAbsGradRow));
 focusedIm = stackMat(:, :, idxFocused(1));
-maskIm = logmask(focusedIm, objWidth);
-figure('color', 'w');
-imshowpair(focusedIm, maskIm);
-axis equal off;
-end
-
-function maskIm = logmask(rawIm, objWidth)
-rawIm = medfilt2(rawIm);
-rawIm = im2double(rawIm);
-normIm = mat2gray(rawIm);
-logFiltIm = imfilter(normIm, fspecial('log', objWidth * 3, objWidth), ...
-    'replicate');
-logFiltIm = imcomplement(mat2gray(logFiltIm));
-
-backFiltIm = imfilter(logFiltIm, ...
-    fspecial('gaussian', objWidth * 30, objWidth * 10), 'replicate');
-logFiltIm = logFiltIm - backFiltIm;
-logFiltIm(logFiltIm < 0) = 0;
-logFiltIm = mat2gray(logFiltIm);
-maskIm = im2bw(logFiltIm, graythresh(logFiltIm));
-maskIm = imclose(maskIm, strel('sq', 3));
 end
