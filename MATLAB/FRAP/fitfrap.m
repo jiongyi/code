@@ -28,8 +28,9 @@ elseif numel(regPropStruct) > 1
     isBleachedIm = false(size(isBleachedIm));
     isBleachedIm(regPropStruct([regPropStruct(:).Area] == ...
         max([regPropStruct(:).Area])).PixelIdxList) = true;
+% else
+%     isBleachedIm = regPropStruct(1).ConvexImage;
 end
-
 %% Calculate bleaching correction.
 postBleachMeanIm = mat2gray(postBleachMeanIm);
 isSignalIm = im2bw(postBleachMeanIm, graythresh(postBleachMeanIm));
