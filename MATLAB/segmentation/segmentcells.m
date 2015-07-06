@@ -1,4 +1,4 @@
-function shedIm = segmentcells(rawIm, objWidth)
+function [shedIm, resultsIm] = segmentcells(rawIm, objWidth)
 %% Normalize and flatten image.
 normIm = mat2gray(im2double(rawIm));
 eqIm = adapthisteq(normIm);
@@ -22,7 +22,15 @@ imposedIm = imimposemin(closedIm, regMinIm | ~logical(shedIm));
 shedIm = watershed(imposedIm);
 rgbIm = label2rgb(shedIm, 'jet', 'w', 'shuffle');
 figure; imshowpair(normIm, rgbIm, 'montage');
+resultsIm = imfuse(normIm, rgbIm, 'montage');
 % figure, imshowpair(closedIm, regMinIm, 'montage');
 % figure; imshowpair(normIm, medIm, 'montage');
 % figure; imshowpair(normIm, closedIm, 'montage');
+% imwrite(normIm, 'normalized.jpg');
+% imwrite(eqIm, 'equalized.jpg');
+% imwrite(dogIm, 'diff-gauss-filtered.jpg');
+% imwrite(medIm, 'med-filtered.jpg');
+% imwrite(openedIm, 'opened.jpg');
+% imwrite(closedIm, 'closed.jpg');
+% imwrite(regMinIm, 'reg-minima.jpg');
 end
