@@ -1,7 +1,13 @@
 function isRegMaxIm = maskregionalmax(rawIm, objWidth)
 % Normalize and flatten image.
-flatIm = imflat(rawIm, objWidth, 10 * objWidth);
+eqIm = adapthisteq(mat2gray(im2double(rawIm)));
+dogIm = dogfilter(eqIm, objWidth);
 % Open-close median-filtered image.
-openClosedIm = imopenclose(flatIm, 2);
-isRegMaxIm = imopen(imregionalmax(openClosedIm), strel('sq', 3));
+openClosedIm = imopenclose(dogIm, objWidth);
+% Watershed.
+isRegMaxIm = imerode(imregionalmax(openClosedIm), strel('sq', 5));
+bwIm = im2bw(openClosedIm, graythresh(openClosedIm));
+minIm = imimposemin(imcomplement(openClosedIm), ~bwIm | isRegMaxIm);
+shedIm = watershed(minIm);
+isRegMaxIm = imclearborder(shedIm > 1);
 end

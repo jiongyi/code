@@ -1,11 +1,15 @@
-function isCellIm = markerwatershed(rawIm, objWidth, isRegMaxIm)
+function [isCellIm, fusedIm] = markerwatershed(rawIm, objWidth, isRegMaxIm)
 % Normalize and flatten image.
-flatIm = imflat(rawIm, objWidth, 10 * objWidth);
+eqIm = adapthisteq(mat2gray(im2double(rawIm)));
+dogIm = dogfilter(eqIm, objWidth);
 % Open-close median-filtered image.
-openClosedIm = imopenclose(flatIm, 2);
+openClosedIm = imopenclose(dogIm, objWidth);
 % Watershed.
 minImposedIm = imimposemin(openClosedIm, isRegMaxIm);
 shedIm = watershed(minImposedIm);
 % Binarize.
 isCellIm = imclearborder(shedIm > 1);
+cellOutlineIm = cat(3, zeros(size(isCellIm)), bwperim(isCellIm), ...
+    zeros(size(isCellIm)));
+fusedIm = imfuse(openClosedIm, cellOutlineIm, 'blend');
 end
