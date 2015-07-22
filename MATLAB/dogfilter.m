@@ -1,13 +1,8 @@
-function dogIm = dogfilter(rawIm, objWidth)
-% Convert to double.
-doubleIm = mat2gray(im2double(rawIm));
-% Calculate sigma.
-smallSigma = round(objWidth / (1 + sqrt(2)));
-bigSigma = round(sqrt(2) * objWidth);
-
+function dogIm = dogfilter(rawIm, sigma1, sigma2)
+doubleIm = im2double(rawIm);
 % Filter and subtract.
-smallIm = imfilter(doubleIm, fspecial('gaussian', 3 * smallSigma, ...
-    smallSigma), 'replicate');
-bigIm = imfilter(doubleIm, fspecial('gaussian', 3 * bigSigma, ...
-    bigSigma), 'replicate');
+smallIm = imfilter(doubleIm, fspecial('gaussian', 6 * sigma1, ...
+    sigma1), 'replicate');
+bigIm = imfilter(doubleIm, fspecial('gaussian', 6 * sigma2, ...
+    sigma2), 'replicate');
 dogIm = mat2gray(smallIm - bigIm);
