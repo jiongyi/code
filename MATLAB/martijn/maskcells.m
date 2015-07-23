@@ -12,13 +12,8 @@ Nucleus.normIm = mat2gray(im2double(Nucleus.rawIm));
 Nucleus.eqIm = adapthisteq(Nucleus.normIm);
 
 % Difference-of-gaussian filter.
-Contact.sigma1 = 2;
-Contact.sigma2 = Contact.sigma1 + contactWidth;
-Contact.dogIm = dogfilter(Contact.eqIm, Contact.sigma1, Contact.sigma2);
-
-Nucleus.sigma1 = 2;
-Nucleus.sigma2 = Nucleus.sigma1 + nucleusWidth;
-Nucleus.dogIm = dogfilter(Nucleus.eqIm, Nucleus.sigma1, Nucleus.sigma2);
+Contact.dogIm = dogfilter(Contact.eqIm, contactWidth);
+Nucleus.dogIm = dogfilter(Nucleus.eqIm, nucleusWidth);
 
 % Segment nuclei.
 Nucleus.bwIm = im2bw(Nucleus.dogIm, graythresh(Nucleus.dogIm));
