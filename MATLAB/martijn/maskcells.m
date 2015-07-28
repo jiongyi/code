@@ -11,13 +11,17 @@ Contact.eqIm = adapthisteq(Contact.normIm);
 Nucleus.normIm = mat2gray(im2double(Nucleus.rawIm));
 Nucleus.eqIm = adapthisteq(Nucleus.normIm);
 
-% Difference-of-gaussian filter.
-Contact.dogIm = dogfilter(Contact.eqIm, contactWidth);
-Nucleus.dogIm = dogfilter(Nucleus.eqIm, nucleusWidth);
+% Flatten images.
+Contact.flatIm = mat2gray(Contact.eqIm ./ ...
+    imfilter(Contact.eqIm, fspecial('average', 6 * contactWidth + 1), ...
+    'replicate'));
+Nucleus.flatIm = mat2gray(Nucleus.eqIm ./ ...
+    imfilter(Nucleus.eqIm, fspecial('average', 6 * nucleusWidth + 1), ...
+    'replicate'));
 
 % Open-close images.
-Contact.ocIm = mat2gray(imopenclose(Contact.dogIm, contactWidth));
-Nucleus.ocIm = mat2gray(imopenclose(Nucleus.dogIm, nucleusWidth));
+Contact.ocIm = mat2gray(imopenclose(Contact.flatIm, contactWidth));
+Nucleus.ocIm = mat2gray(imopenclose(Nucleus.flatIm, nucleusWidth));
 
 % Segment nuclei.
 Nucleus.bwIm = im2bw(Nucleus.ocIm, graythresh(Nucleus.ocIm));
@@ -31,7 +35,7 @@ Contact.waterIm = watershed(Contact.minIm);
 Contact.bwIm = imclearborder(Contact.waterIm > 1);
 
 % Make fused image.
-Contact.outIm = cat(3, zeros(size(Contact.bwIm)), bwperim(Contact.bwIm), ...
-    zeros(size(Contact.bwIm)));
-Contact.fusedIm = imfuse(Contact.ocIm, Contact.outIm, 'blend');
+Contact.fusedIm = imoverlay(Contact.minIm, ...
+    imdilate(bwperim(Contact.waterIm == 0), strel('square', 3)), ...
+    [0, 1, 0]);
 end

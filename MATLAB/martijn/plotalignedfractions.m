@@ -12,8 +12,11 @@ for iTrial = 1 : nTrials
 end
 meanThresholdFractionRow = mean(thresholdFractionMat, 2);
 stdThresholdFractionRow = std(thresholdFractionMat');
-figure;
+figure('color', 'w');
 errorbar(meanThresholdFractionRow, stdThresholdFractionRow, '.');
+set(gca, 'tickdir', 'out', 'box', 'off');
+xlabel('Frame');
+ylabel('Fraction aligned');
 end
 
 function thresholdFraction = calculatefraction(rhoRow, threshold)

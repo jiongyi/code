@@ -5,8 +5,8 @@ if strcmp(class(rawIm), 'double')
     rawIm = im2double(rawIm);
 end
 % Open-close median-filtered image.
-erodedIm = imerode(rawIm, strel('square', objWidth));
+erodedIm = imerode(rawIm, strel('disk', objWidth));
 openedIm = imreconstruct(erodedIm, rawIm);
-dilatedIm = imdilate(openedIm, strel('square', objWidth));
+dilatedIm = imdilate(openedIm, strel('disk', objWidth));
 openClosedIm = imcomplement(imreconstruct(imcomplement(dilatedIm), ...
     imcomplement(openedIm)));
