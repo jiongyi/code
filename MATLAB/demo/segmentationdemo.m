@@ -115,6 +115,26 @@ figure; imshowpair(eqCadIm, dogIm, 'montage');
 % Tip: Background substraction can generate pixels with negative
 % intensity values. Use matgray() to normalize the pixel intensities to [0, 1].
 %% Watershed segmentation
-
-
+% The principle behind watershed segmentation is analogous to flooding some 
+% sort of terrain, where the basins are filled up with water first, and when 
+% the water overflows these basins at their ridges, the algorithm marks these 
+% ridges as the boundaries between objects.
+% The name of the game in this type of segmentation is to mark these basin 
+% regions and where the ridges should be. In fluorescent cadherin images, the 
+% cell bodies could be treated as the basins, and the contacts could be the 
+% ridges. In this sense, these basins could be marked as the regional minima 
+% in the image like so:
+isBasinIm = imregionalmin(eqCadIm);
+% The next trick is to make sure that the watershed or flooding begins at the 
+% same depth, so what is typically done is to impose global minima at the 
+% locations of the basins:
+minIm = imposemin(eqCadIm, isBasinIm);
+% This function imposes minima by setting the pixel values at local minima to 
+% negative infinity. At this point, one can also mark up the ridges by perhaps 
+% finding the local maxima in the image, but one can still try the watershed 
+% process using an image where the basins have been marked:
+waterIm = watershed(minIm);
+% One can display the results of the segmentation by labeling each object using
+% a specific color:
+rgbIm = label2rgb(waterIm, 'jet', 'w', 'shuffle');
 
