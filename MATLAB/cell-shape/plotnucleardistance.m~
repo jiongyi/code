@@ -1,16 +1,22 @@
 function plotnucleardistance(NucleusStatsCell)
 % Initialize variables.
 noFrames = numel(NucleusStatsCell);
-meanNearNeighHorizProjRow = zeros(1, noFrames);
+meanNearNeighHorizDistRow = zeros(1, noFrames);
 % Loop over each frame.
 for iFrame = 1 : noFrames
     tmpCentroidMat = vertcat(NucleusStatsCell{iFrame}(:).Centroid);
-    tmpOrientatonRadRow = [CellStatsCell{iFrame}(:).Orientation] / 180 * pi;
-    tmpOrie
+    tmpDistMat = pdist2(tmpCentroidMat, tmpCentroidMat);
+    tmpMaxDist = max(tmpDistMat(:));
+    tmpDistMat = tmpDistMat + tmpMaxDist * eye(size(tmpMaxDist));
+    [~, idxCol] = min(tmpDistMat, [], 2);
+    tmpHorizDistMat = pdist2(tmpCentroidMat(:, 1), tmpCentroidMat(:, 1));
+    noNuclei = size(tmpHorizDistMat, 1);
+    meanNearNeighHorizDistRow(iFrame) = mean(arrayfun(@(x, y) ...
+        tmpHorizDistMat(x, y), 1 : noNuclei, idxCol));
 end
 % Normalize strain.
-meanNearNeighHorizProjRow = meanNearNeighHorizProjRow / meanNearNeighHorizProjRow(1);
-prctStrainRow = (meanNearNeighHorizProjRow - 1) * 100;
+meanNearNeighHorizDistRow = meanNearNeighHorizDistRow / meanNearNeighHorizDistRow(1);
+prctStrainRow = (meanNearNeighHorizDistRow - 1) * 100;
 
 figure('color', 'w');
 plot(prctStrainRow);
