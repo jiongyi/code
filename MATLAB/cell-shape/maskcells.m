@@ -12,12 +12,8 @@ Nucleus.normIm = mat2gray(im2double(Nucleus.rawIm));
 Nucleus.eqIm = adapthisteq(Nucleus.normIm);
 
 % Flatten images.
-Contact.flatIm = mat2gray(Contact.eqIm ./ ...
-    imfilter(Contact.eqIm, fspecial('average', 6 * contactWidth + 1), ...
-    'replicate'));
-Nucleus.flatIm = mat2gray(Nucleus.eqIm ./ ...
-    imfilter(Nucleus.eqIm, fspecial('average', 6 * nucleusWidth + 1), ...
-    'replicate'));
+Contact.flatIm = mat2gray(dogfilter(Contact.eqIm, contactWidth));
+Nucleus.flatIm = mat2gray(dogfilter(Nucleus.eqIm, nucleusWidth));
 
 % Open-close images.
 Contact.ocIm = mat2gray(imopenclose(Contact.flatIm, contactWidth));
