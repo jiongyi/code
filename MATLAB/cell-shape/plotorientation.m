@@ -8,7 +8,7 @@ normBinCountCell = cellfun(@(x) x / sum(x), binCountCell, ...
     'UniformOutput', false);
 normBinCountMat = vertcat(normBinCountCell{:});
 figure('color', 'w');
-bar(normBinCountMat, 'stacked');
+bar(normBinCountMat, 1, 'stacked');
 set(gca, 'box', 'off', 'tickdir', 'out', 'linewidth', 1.5);
 xlabel('Frame No');
 ylabel('Frequency');
