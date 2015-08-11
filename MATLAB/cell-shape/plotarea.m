@@ -9,7 +9,7 @@ for iFrame = 1 : noFrames
         sqrt(noCells);
 end
 normMeanAreaRow = meanAreaRow / meanAreaRow(1);
-normStdAreaRow = stdAreaRow / stdAreRow(1);
+normStdAreaRow = semAreaRow / semAreaRow(1);
 prctMeanAreaRow = (normMeanAreaRow - 1) * 100;
 figure('color', 'w');
 errorbar(prctMeanAreaRow, normStdAreaRow);
