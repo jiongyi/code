@@ -46,5 +46,6 @@ firstIdx = idxFileSep(end - 1) + 1;
 lastIdx = idxFileSep(end) - 1;
 saveFileNameStr = folderNameStr(firstIdx : lastIdx);
 save([folderNameStr, saveFileNameStr, '-analyzed.mat'], ...
-    'CellStatsCell', 'NucleusStatsCell', 'Contact', 'Nucleus');
+    'CellStatsCell', 
+
 end
