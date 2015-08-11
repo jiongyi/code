@@ -7,12 +7,14 @@ meanCosOrientationRow = cellfun(@mean, cosOrientationCell);
 
 orientationAbsDegCell = cellfun(@abs, orientationDegCell, ...
     'UniformOutput', false);
-[tOutCell, rOutCell] = cellfun(@(x) rose(x / 180 * pi, 24), ...
-    orientationAbsDegCell, 'UniformOutput', false);
-rOutNormCell = cellfun(@(x) x / sum(x), rOutCell, 'UniformOutput', false);
-rOutNormMat = cat(2, rOutNormCell{:})';
+binRow = linspace(0, 90, 6);
+binCountCell = cellfun(@(x) histc(x, binRow), orientationAbsDegCell, ...
+    'UniformOutput', false);
+normBinCountCell = cellfun(@(x) x / sum(x), binCountCell, ...
+    'UniformOutput', false);
+normBinCountMat = vertcat(normBinCountCell{:})';
 figure('color', 'w');
-imshow(rOutNormMat);
+imshow(normBinCountMat, 'InitialMagnification', 'fit');
 colormap jet;
 
 figure('color', 'w');
