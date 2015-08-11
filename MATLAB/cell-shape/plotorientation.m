@@ -10,7 +10,7 @@ orientationAbsDegCell = cellfun(@abs, orientationDegCell, ...
 [tOutCell, rOutCell] = cellfun(@(x) rose(x / 180 * pi, 24), ...
     orientationAbsDegCell, 'UniformOutput', false);
 rOutNormCell = cellfun(@(x) x / sum(x), rOutCell, 'UniformOutput', false);
-rOutNormMat = [rOutNormCell{:}]';
+rOutNormMat = cat(2, rOutNormCell{:})';
 figure('color', 'w');
 imshow(rOutNormMat);
 colormap jet;
