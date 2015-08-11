@@ -1,0 +1,9 @@
+function plotarea(CellStatsCell)
+noFrames = numel(CellStatsCell);
+meanAreaRow = zeros(1, noFrames);
+semAreaRow = 
+for iFrame = 1 : noFrames
+    meanAreaRow(iFrame) = mean([CellStatsCell{iFrame}(:).Area]);
+    
+end
+end
