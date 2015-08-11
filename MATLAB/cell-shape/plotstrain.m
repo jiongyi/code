@@ -7,7 +7,7 @@ for iFrame = 1 : noFrames
     tmpMajorAxisLengthRow = [CellStatsCell{iFrame}(:).MajorAxisLength];
     tmpOrientatonRadRow = [CellStatsCell{iFrame}(:).Orientation] / 180 * pi;
     meanHorizProjRow(iFrame) = mean(tmpMajorAxisLengthRow .* ...
-        tmpOrientatonRadRow);
+        cos(tmpOrientatonRadRow));
 end
 % Normalize strain.
 meanHorizProjRow = meanHorizProjRow / meanHorizProjRow(1);
