@@ -1,11 +1,22 @@
 function plotorientation(CellStatsCell)
-orientationRadCell = cellfun(@(x) [x(:).Orientation], CellStatsCell, ...
+orientationDegCell = cellfun(@(x) [x(:).Orientation], CellStatsCell, ...
     'UniformOutput', false);
-cosOrientationCell = cellfun(@cos, orientationRadCell, ...
+cosOrientationCell = cellfun(@cos, orientationDegCell, ...
     'UniformOutput', false);
 meanCosOrientationRow = cellfun(@mean, cosOrientationCell);
+
+orientationAbsDegCell = cellfun(@abs, orientationDegCell, ...
+    'UniformOutput', false);
+[tOutCell, rOutCell] = cellfun(@(x) rose(x / 180 * pi, 24), ...
+    orientationAbsDegCell, 'UniformOutput', false);
+rOutNormCell = cellfun(@(x) x / sum(x), rOutCell, 'UniformOutput', false);
+rOutNormMat = [rOutNormCell{:}]';
 figure('color', 'w');
-plotSpread(orientationRadCell);
+imshow(rOutNormMat);
+colormap jet;
+
+figure('color', 'w');
+plotSpread(orientationDegCell);
 set(gca, 'box', 'off', 'tickdir', 'out', 'linewidth', 1.5);
 xlabel('Frame No');
 ylabel('Orientation (rad)');
