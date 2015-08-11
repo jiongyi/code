@@ -9,7 +9,7 @@ for iFrame = 1 : noFrames
         sqrt(noCells);
 end
 figure('color', 'w');
-errobar(meanAreaRow, semAreaRow);
+errorbar(meanAreaRow, semAreaRow);
 set(gca, 'box', 'off', 'tickdir', 'out', 'linewidth', 1.5);
 xlabel('Frame No');
 ylabel('Mean cell area');
