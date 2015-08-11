@@ -5,14 +5,10 @@ meanNearNeighHorizDistRow = zeros(1, noFrames);
 % Loop over each frame.
 for iFrame = 1 : noFrames
     tmpCentroidMat = vertcat(NucleusStatsCell{iFrame}(:).Centroid);
-    tmpDistMat = pdist2(tmpCentroidMat, tmpCentroidMat);
+    tmpDistMat = pdist2(tmpCentroidMat(:, 1), tmpCentroidMat(:, 1));
     tmpMaxDist = max(tmpDistMat(:));
-    tmpDistMat = tmpDistMat + tmpMaxDist * eye(size(tmpDistDist));
-    [~, idxCol] = min(tmpDistMat, [], 2);
-    tmpHorizDistMat = pdist2(tmpCentroidMat(:, 1), tmpCentroidMat(:, 1));
-    noNuclei = size(tmpHorizDistMat, 1);
-    meanNearNeighHorizDistRow(iFrame) = mean(arrayfun(@(x, y) ...
-        tmpHorizDistMat(x, y), 1 : noNuclei, idxCol));
+    tmpDistMat = tmpDistMat + tmpMaxDist * eye(size(tmpDistMat));
+    meanNearNeighHorizDistRow(iFrame) = mean(min(tmpDistMat, [], 2));
 end
 % Normalize strain.
 meanNearNeighHorizDistRow = meanNearNeighHorizDistRow / ...
