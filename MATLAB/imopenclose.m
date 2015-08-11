@@ -10,5 +10,3 @@ openedIm = imreconstruct(erodedIm, rawIm);
 dilatedIm = imdilate(openedIm, strel('disk', objWidth));
 openClosedIm = imcomplement(imreconstruct(imcomplement(dilatedIm), ...
     imcomplement(openedIm)));
-figure;
-imshowpair(rawIm, openClosedIm, 'montage');

@@ -1,0 +1,9 @@
+function plotstrain(CellStatsCell)
+noFrames = numel(CellStatsCell);
+meanHorizProjRow = zeros(1, noFrames);
+for iFrame = 1 : noFrames
+    tmpMajorAxisLengthRow = [CellStatsCell{iFrame}(:).MajorAxisLength];
+    tmpOrientatonRadRow = [CellStatsCell{iFrame}(:).Orientation] / 180 * pi;
+    meanHorizProjRow(iFrame) = 
+end
+end
