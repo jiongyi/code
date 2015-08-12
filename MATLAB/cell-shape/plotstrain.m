@@ -1,4 +1,4 @@
-function plotstrain(CellStatsCell)
+function prctStrainRow = plotstrain(CellStatsCell)
 % Initialize variables.
 noFrames = numel(CellStatsCell);
 meanHorizProjRow = zeros(1, noFrames);
