@@ -1,4 +1,4 @@
-function [eigenMat, ridgeIm, isLinePointMat] = hessianfilter(rawIm)
+function [ridgeIm, isLinePointMat] = hessianfilter(rawIm)
 % Check if image is class double.
 if ~strcmp(class(rawIm), 'double')
     rawIm = im2double(rawIm);
@@ -13,7 +13,7 @@ end
 noPixels = numel(rawIm);
 eigenMat = zeros(size(rawIm));
 ridgeIm = zeros(size(rawIm));
-taylorMat = zeros(size(rawIm));
+tMat = zeros(size(rawIm));
 pxMat = zeros(size(rawIm));
 pyMat = zeros(size(rawIm));
 isLinePointMat = false(size(rawIm));
@@ -24,11 +24,11 @@ for iPixel = 1 : noPixels
     [eigenMat(iPixel), idxMinEigenVal] = min(tmpEigenValCol);
     nx = tmpEigenVecMat(1, idxMinEigenVal);
     ny = tmpEigenVecMat(2, idxMinEigenVal);
-    taylorMat(iPixel) = (dxMat(iPixel) * nx + dyMat(iPixel) * ny) / ...
+    tMat(iPixel) = -(dxMat(iPixel) * nx + dyMat(iPixel) * ny) / ...
         (dxxMat(iPixel) * nx^2 + 2 * dxyMat(iPixel) * nx * ny + ...
         dyyMat(iPixel) * ny^2);
-    pxMat(iPixel) = taylorMat(iPixel) * nx;
-    pyMat(iPixel) = taylorMat(iPixel) * ny;
+    pxMat(iPixel) = tMat(iPixel) * nx;
+    pyMat(iPixel) = tMat(iPixel) * ny;
     if (abs(pxMat(iPixel)) <= 0.5) && (abs(pyMat(iPixel)) <= 0.5)
         isLinePointMat(iPixel) = true;
     end
@@ -38,4 +38,4 @@ for iPixel = 1 : noPixels
         ridgeIm(iPixel) = -eigenMat(iPixel);
     end
 end
-
+end
