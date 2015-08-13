@@ -1,4 +1,4 @@
-function plotorientation(CellStatsCell)
+function [sortNormBinCountMat, sortPrctStrainRow] = plotorientation(CellStatsCell)
 % Calculate frequency of orientation measurements in each angle bin.
 orientationAbsDegCell = cellfun(@(x) abs([x(:).Orientation]), ...
     CellStatsCell, 'UniformOutput', false);
