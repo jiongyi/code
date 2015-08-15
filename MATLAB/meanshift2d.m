@@ -1,42 +1,45 @@
-function meanShiftIm = meanshift2d(rawIm, kernelWidth, ...
-    tolerance, maxNoIterations)
-% Make sure kernel width is odd.
-if mod(kernelWidth, 2) == 0 || kernelWidth < 3
-    error('Kernel width must be odd (>= 3).');
+function meanshift2d(rawIm, sigma, kernelRad, threshold)
+% Check if double.
+if ~strcmp(class(rawIm), 'double')
+  rawIm = im2double(rawIm);
 end
 
-% Initialize variables.
-gaussFiltObj = fspecial('gaussian', kernelWidth, ...
-    kernelWidth / 6);
-currentIm = rawIm;
-nextIm = imfilter(currentIm, gaussFiltObj, 'replicate');
-gap =  mean(abs(nextIm(:) - currentIm(:)));
+% Initialize variables for while loop.
+[noRows, noCols] = size(rawIm);
+currIm = rawIm;
+currPadIm = padarray(currIm, [noRows, noCols],'symmetric');
+nextIm = zeros(noRows, noCols);
 
-if ~exist('maxNoIterations', 'var')
-    maxNoIterations = 1000;
-    disp('Setting maximum number of iterations to 1000');
-end
-iterationNo = 1;
-
-if ~exist('tolerance', 'var')
-    tolerance = 1e-4;
-    disp('Setting tolerance to 1e-4');
-end
-
-% Execute loop.
-while (gap >= tolerance) && (iterationNo <= maxNoIterations)
+done = false;
+iterationNo = 0;
+maxNoIterations = 100;
+meanShiftIm = zeros(noRows, noCols);
+while ~done && (iterationNo <= maxNoIterations)
     iterationNo = iterationNo + 1;
-    currentIm = nextIm;
-    nextIm = imfilter(currentIm, gaussFiltObj, 'replicate');
-    gap = mean(abs(nextIm(:) - currentIm(:)));
+    for i = 1 : noRows
+        for j = 1 : noCols
+            neighIm = currPadIm((noRows + i - kernelRad) : ...
+                (noRows + i + kernelRad), (noCols + j - kernelRad) : ...
+                (noCols + j + kernelRad));
+            sqDiffIm = (neighIm - ...
+                neighIm(kernelRad + 1, kernelRad + 1)).^2;
+            weightIm = exp(-0.5 * sqDiffIm / (sigma^2));
+            weightSum = sum(weightIm(:));
+            nextIm(i, j) = sum(weightIm(:) .* neighIm(:)) / weightSum;
+        end
+    end
+    gap = mean(abs(nextIm(:) - currIm(:)));
+    disp(['Gap = ', num2str(gap, '%.1e'), ' at iteration #', ...
+        num2str(iterationNo)]);
+    done = gap <= threshold;
+    if done
+        meanShiftIm = nextIm;
+    else
+        currIm = nextIm;
+        currPadIm = padarray(currIm, [noRows, noCols],'symmetric');
+    end
 end
-
-if (iterationNo == maxNoIterations)
-    disp('Maximum number of iterations has been reached.');
-end
-meanShiftIm = currentIm;
-
 figure('color', 'white');
-imshow(currentIm, []);
+imshow(meanShiftIm, []);
 colormap summer;
 colorbar;
