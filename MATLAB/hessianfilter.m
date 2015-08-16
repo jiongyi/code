@@ -17,6 +17,8 @@ tMat = zeros(size(rawIm));
 pxMat = zeros(size(rawIm));
 pyMat = zeros(size(rawIm));
 isLinePointMat = false(size(rawIm));
+nxMat = zeros(size(rawIm));
+nyMat = zeros(size(rawIm));
 for iPixel = 1 : noPixels
     [tmpEigenVecMat, tmpEigenValMat] = eig(...
         [dxxMat(iPixel), dxyMat(iPixel); dyxMat(iPixel), dyyMat(iPixel)]);
@@ -24,6 +26,8 @@ for iPixel = 1 : noPixels
     [eigenMat(iPixel), idxMinEigenVal] = min(tmpEigenValCol);
     nx = tmpEigenVecMat(1, idxMinEigenVal);
     ny = tmpEigenVecMat(2, idxMinEigenVal);
+    nxMat(iPixel) = nx;
+    nyMat(iPixel) = ny;
     tMat(iPixel) = -(dxMat(iPixel) * nx + dyMat(iPixel) * ny) / ...
         (dxxMat(iPixel) * nx^2 + 2 * dxyMat(iPixel) * nx * ny + ...
         dyyMat(iPixel) * ny^2);
@@ -38,4 +42,6 @@ for iPixel = 1 : noPixels
         ridgeIm(iPixel) = -eigenMat(iPixel);
     end
 end
+figure;
+quiver(pxMat, pyMat);
 end
