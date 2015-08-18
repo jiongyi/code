@@ -1,4 +1,6 @@
-function [sortNormBinCountMat, sortPrctStrainRow] = plotorientation(CellStatsCell)
+function [sortNormBinCountMat, sortPrctStrainRow, ...
+    sortSemPrctStrainRow, sortOrientationAbsDegCell] = ...
+    plotorientation(CellStatsCell)
 % Calculate frequency of orientation measurements in each angle bin.
 orientationAbsDegCell = cellfun(@(x) abs([x(:).Orientation]), ...
     CellStatsCell, 'UniformOutput', false);
@@ -10,9 +12,11 @@ normBinCountCell = cellfun(@(x) x / sum(x), binCountCell, ...
 normBinCountMat = vertcat(normBinCountCell{:});
 
 % Calculate percent strain in each frame.
-prctStrainRow = plotstrain(CellStatsCell);
+[prctStrainRow, semPrctStrainRow] = plotstrain(CellStatsCell);
 [sortPrctStrainRow, sortIdxRow] = sort(prctStrainRow, 'ascend');
 sortNormBinCountMat = normBinCountMat(sortIdxRow, :);
+sortOrientationAbsDegCell = orientationAbsDegCell(sortIdxRow);
+sortSemPrctStrainRow = semPrctStrainRow(sortIdxRow);
 figure('color', 'w');
 bar(sortNormBinCountMat, 1, 'stacked');
 set(gca, 'box', 'off', 'tickdir', 'out', 'linewidth', 1.5);
