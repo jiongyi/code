@@ -82,7 +82,6 @@ meanOrientationFreqMat = zeros(noStrainPts, numel(binRow));
 semOrientationFreqMat = zeros(noStrainPts, numel(binRow));
 binCountsRow = zeros(1, noStrainPts);
 for i = 1 : noStrainPts
-    find(catGrpStrainRow == catClusterRow(i))
     tmpGrpOrientationFreqMat = ...
         vertcat(catGrpOrientationFreqCell{catGrpStrainRow == ...
         catClusterRow(i)});
@@ -100,7 +99,7 @@ ylim(gca, [0, 1]);
 xlim(gca, [0.5, numel(catClusterRow) - 0.5]);
 xlabel(gca, 'Percent strain');
 idxTick = get(gca, 'xtick');
-set(gca, 'xticklabel', arrayfun(@(x) num2str(x, '%.2g'), ...
+set(gca, 'xticklabel', arrayfun(@(x) num2str(100 * x, '%2.1f'), ...
   catClusterRow(idxTick), 'UniformOutput', false));
 ylabel('Frequency');
 colormap summer;
