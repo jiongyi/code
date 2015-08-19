@@ -47,7 +47,8 @@ Experiment(noFiles).idxClusterRow = [];
 Experiment(noFiles).clusterRow = [];
 for i = 1 : noFiles
     Experiment(i).idxClusterRow = idxClusterCell{i};
-    Experiment(i).clusterRow = catClusterRow(idxClusterCell{i});
+    Experiment(i).clusterRow = unique(catClusterRow(idxClusterCell{i}), ...
+        'stable');
 end
 
 % Regroup and histogram data based on binned strain.
@@ -81,6 +82,7 @@ meanOrientationFreqMat = zeros(noStrainPts, numel(binRow));
 semOrientationFreqMat = zeros(noStrainPts, numel(binRow));
 binCountsRow = zeros(1, noStrainPts);
 for i = 1 : noStrainPts
+    find(catGrpStrainRow == catClusterRow(i))
     tmpGrpOrientationFreqMat = ...
         vertcat(catGrpOrientationFreqCell{catGrpStrainRow == ...
         catClusterRow(i)});
@@ -101,7 +103,7 @@ idxTick = get(gca, 'xtick');
 set(gca, 'xticklabel', arrayfun(@(x) num2str(x, '%.2g'), ...
   catClusterRow(idxTick), 'UniformOutput', false));
 ylabel('Frequency');
-colormap jet;
+colormap summer;
 hold on;
 for i = 1 : noStrainPts
     errorbar(i * ones(1, 7), cumsum(meanOrientationFreqMat(i, :)), ...
@@ -118,7 +120,7 @@ meanSem = mean(semPrctStrainRow);
 beta = (3 / meanSem)^2;
 
 % Perform mean-shift clustering.
-clusteredRow = pwc_cluster(meanPrctStrainRow, [], 1, beta, 1, 0)';
+clusteredRow = pwc_cluster(meanPrctStrainRow, [], 1, beta, 1, 0, eps)';
 tolerance = 1e-5;
 [sortClusteredRow, sortIdxRow] = sort(clusteredRow, 'ascend');
 diffSortClusteredRow = diff(sortClusteredRow);
