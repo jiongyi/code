@@ -1,121 +1,108 @@
-function dynamicalequations(patchSize, spaceInterval)
+function dynamicalequations(patchSize, spaceInterval, noSteps)
 % Initialize parameters.
 noBoxesPerSide = ceil(patchSize / spaceInterval);
 diffCoeff = 5;
-kOne = 5;
-kTwo = 0;
+advectionRate = 1;
 xi = 80;
+kOne = 5;
 alpha = 100;
-beta = 100;
-activeTemp = 20;
-zeroVel = 1;
 
 % Initialize filament concentration and orientation matrix.
-concMat = poissrnd(1, noBoxesPerSide);
-concMat = concMat(2 : end - 1, 2 :  end - 1);
-    concMat = padarray(concMat, [1, 1], 'replicate', 'both');
-filOrMat = 2 * pi * rand(noBoxesPerSide);
-horizOrMat = cos(filOrMat);
-vertOrMat = sin(filOrMat);
+% According to Onsager, c* = 5.3 x 10^20 chains/m^3
+concMat = poissrnd(10, noBoxesPerSide);
+lambda = xi * advectionRate * mean(concMat(:));
+horFilOrMat = zeros(noBoxesPerSide);
+vertFilOrMat = zeros(noBoxesPerSide);
+for iFil = 1 : noBoxesPerSide^2
+    thetaRow = 2 * pi * rand(1, concMat(iFil));
+    horFilOrMat(iFil) = sum(cos(thetaRow));
+    vertFilOrMat(iFil) = sum(sin(thetaRow));
+end
 
-noSteps = 5;
+initConcMat = concMat;
 timeInterval = 0.05; % Time interval is 0.125 s.
-
-% Display initial state.
-figure('color', 'white');
-imshow(concMat, []);
-colormap jet;
-colorbar;
-title('Initial concentration');
-disp(sum(concMat(:)));
-
 for i = 1 : noSteps
-    % Update concentration.
-    horizActAdvMat = zeroVel * concMat .* horizOrMat;
-    vertActAdvMat = zeroVel * concMat .* vertOrMat;
-    [horizConcGradMat, vertConcGradMat] = gradient(concMat, ...
+    % Pad concentration matrix.
+    padConcMat = padarray(concMat, [2, 2], 'symmetric', 'both');
+    
+    % Compute first and second partial derivatives of concentration matrix.
+    [padHorConcGradMat, padVertConcGradMat] = gradient(padConcMat, ...
         1 / spaceInterval);
-    horizCurrMat = horizActAdvMat - diffCoeff * horizConcGradMat;
-    vertCurrMat = vertActAdvMat - diffCoeff * vertConcGradMat;
-    divCurrMat = divergence(horizCurrMat, vertCurrMat) * spaceInterval;
-    concMat = concMat - divCurrMat * timeInterval;
-    concMat = concMat(2 : end - 1, 2 :  end - 1);
-    concMat = padarray(concMat, [1, 1], 'replicate', 'both');
+    [padHorConcGrad2Mat, ~] = gradient(padHorConcGradMat, ...
+        1 / spaceInterval);
+    [~, padVertConcGrad2Mat] = gradient(padVertConcGradMat, ...
+        1 / spaceInterval);
+    
+    % Update diffusion.
+    padDivDiffusionMat = diffCoeff * (padHorConcGrad2Mat + ...
+        padVertConcGrad2Mat);
+    
+    % Pad and reflect orientation matrices.
+    padHorFilOrMat = padarray(horFilOrMat, [2, 2], ...
+        'symmetric', 'both');
+    padVertFilOrMat = padarray(vertFilOrMat, [2, 2], ...
+        'symmetric', 'both');
+    padHorFilOrMat([1, 2], :) = -1 * padHorFilOrMat([1, 2], :);
+    padHorFilOrMat([end, end - 1], :) = ...
+        -1 * padHorFilOrMat([end, end - 1], :);
+    padHorFilOrMat(:, [1, 2]) = -1 * padHorFilOrMat(:, [1, 2]);
+    padHorFilOrMat(:, [end, end - 1]) = ...
+        -1 * padHorFilOrMat(:, [end, end - 1]);
+    padVertFilOrMat([1, 2], :) = -1 * padVertFilOrMat([1, 2], :);
+    padVertFilOrMat([end, end - 1], :) = ...
+        -1 * padVertFilOrMat([end, end - 1], :);
+    padVertFilOrMat(:, [1, 2]) = -1 * padVertFilOrMat(:, [1, 2]);
+    padVertFilOrMat(:, [end, end - 1]) = ...
+        -1 * padVertFilOrMat(:, [end, end - 1]);
+    
+    % Compute first and second partial derivatives.
+    [padHorFilOrDiffMat, ~] = gradient(padHorFilOrMat, ...
+        1 / spaceInterval);
+    [~, padVertFilOrDiffMat] = gradient(padVertFilOrMat, ...
+        1 / spaceInterval);
+    [padHorFilOrDiff2Mat, ~] = gradient(padHorFilOrDiffMat, ...
+        1 / spaceInterval);
+    [~, padVertFilOrDiff2Mat] = gradient(padVertFilOrDiffMat, ...
+        1 / spaceInterval);
+    
+    % Update active advection.
+    padHorAdvectionVelMat = advectionRate * padConcMat .* padHorFilOrMat;
+    padVertAdvectionVelMat = advectionRate * padConcMat .* padVertFilOrMat;
+    [padHorAdvectionVelGradMat, ~] = gradient(padHorAdvectionVelMat, ...
+        1 / spaceInterval);
+    [~, padVertAdvectionVelGradMat] = gradient(padVertAdvectionVelMat, ...
+        1 / spaceInterval);
+    padDivAdvectionVelMat = padHorAdvectionVelGradMat + ...
+        padVertAdvectionVelGradMat;
+    
+    % Update concentration matrix.
+    concMat = concMat + ...
+        padDivDiffusionMat(3 : end - 2, 3 : end - 2) * timeInterval; % - ...
+%         padDivAdvectionVelMat(3 : end - 2, 3 : end - 2) * timeInterval;
     
     % Update relative sliding.
-    [horizOrGradMat, ~] = gradient(padarray(horizOrMat, [1, 1], ...
-        'replicate', 'both'), 1 / spaceInterval);
-    horizOrGradMat = horizOrGradMat(2 : end - 1, 2 : end - 1);
-    [~, vertOrGradMat] = gradient(padarray(vertOrMat, [1, 1], ...
-        'replicate', 'both'), 1 / spaceInterval);
-    vertOrGradMat = vertOrGradMat(2 : end - 1, 2 : end - 1);
-    divOrMat = horizOrGradMat + vertOrGradMat;
-    
-    lambda = xi * zeroVel * mean(concMat(:));
-    horizRelSlidMat = -lambda * horizOrMat .* horizOrGradMat .* horizOrMat;
-    vertRelSlidMat = -lambda * vertOrMat .* vertOrGradMat .* vertOrMat;
+    padHorRelSlideMat = -lambda * padHorFilOrMat .* padHorFilOrDiffMat;
+    padVertRelSlideMat = -lambda * padVertFilOrMat .* padVertFilOrDiffMat;
     
     % Update relative alignment.
-    [horizOrGrad2Mat, ~] = gradient(padarray(horizOrGradMat, [1, 1], ...
-        'replicate', 'both'), 1 / spaceInterval);
-    horizOrGrad2Mat = horizOrGrad2Mat(2 : end - 1, 2 : end - 1);
-    [~, vertOrGrad2Mat] = gradient(padarray(vertOrGradMat, [1, 1], ...
-        'replicate', 'both'), 1 / spaceInterval);
-    vertOrGrad2Mat = vertOrGrad2Mat(2 : end - 1, 2 : end - 1);
-    [horizGradDivOrMat, vertGradDivOrMat] = gradient(padarray(divOrMat, ...
-        [1, 1], 'replicate', 'both'), 1 / spaceInterval);
-    horizGradDivOrMat = horizGradDivOrMat(2 : end - 1, 2 : end - 1);
-    vertGradDivOrMat = vertGradDivOrMat(2 : end - 1, 2 : end - 1);
-    
-    horizRelAlignMat = kOne * horizOrGrad2Mat + kTwo * horizGradDivOrMat;
-    vertRelAlignMat = kOne * vertOrGrad2Mat + kTwo * vertGradDivOrMat;
-    
-    % Update contractity.
-    horizContractMat = xi * horizConcGradMat;
-    vertContractMat = xi * vertConcGradMat;
+    padHorRelAlignMat = kOne * padHorFilOrDiff2Mat;
+    padVertRelAlignMat = kOne * padVertFilOrDiff2Mat;
     
     % Update spontaneous polarization.
-    magOrMat = sqrt(horizOrMat.^2 + vertOrMat.^2);
-    horizSpontPolMat = alpha * horizOrMat - ...
-        beta * magOrMat.^2 .* horizOrMat;
-    vertSpontPolMat = alpha * vertOrMat - ...
-        beta * magOrMat.^2 .* vertOrMat;
+    padSqMagFilOrMat = padHorFilOrMat.^2 + padVertFilOrMat.^2;
+    padHorSpontPolMat = alpha * (1 - padSqMagFilOrMat) .* padHorFilOrMat;
+    padVertSpontPolMat = alpha * (1 - padSqMagFilOrMat) .* padVertFilOrMat;
     
-    % Update active noise.
-    horizActNoiseMat = activeTemp ./ concMat * randn(noBoxesPerSide);
-    vertActNoiseMat = activeTemp ./ concMat * randn(noBoxesPerSide);
-    
-    % Update orientation field.
-%     diffHorizOrMat = horizRelSlidMat;
-%     diffVertOrMat = vertRelSlidMat;
-    diffHorizOrMat = horizRelAlignMat + horizContractMat;
-    diffVertOrMat = vertRelAlignMat + vertContractMat;
-%     diffHorizOrMat = horizRelSlidMat + horizRelAlignMat + ...
-%         horizContractMat;
-%     diffVertOrMat = vertRelSlidMat + vertRelAlignMat + ...
-%         vertContractMat;
-%     diffHorizOrMat = horizRelSlidMat + horizRelAlignMat + ...
-%         horizContractMat + horizSpontPolMat;
-%     diffVertOrMat = vertRelSlidMat + vertRelAlignMat + ...
-%         vertContractMat + vertSpontPolMat;
-%     diffHorizOrMat = horizRelSlidMat + horizRelAlignMat + ...
-%         horizContractMat + horizSpontPolMat + horizActNoiseMat;
-%     diffVertOrMat = vertRelSlidMat + vertRelAlignMat + ...
-%         vertContractMat + vertSpontPolMat + vertActNoiseMat;
-    
-    horizOrMat = horizOrMat + diffHorizOrMat * timeInterval;
-    vertOrMat = vertOrMat + diffVertOrMat * timeInterval;
+    % Update orientation matrices.
+    horFilOrMat = horFilOrMat + ...
+        padHorRelSlideMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        padHorRelAlignMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        padHorSpontPolMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        xi * padHorConcGradMat(3 : end - 2, 3 : end - 2) * timeInterval;
+    vertFilOrMat = vertFilOrMat + ...
+        padVertRelSlideMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        padVertRelAlignMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        padVertSpontPolMat(3 : end - 2, 3 : end - 2) * timeInterval + ...
+        xi * padVertConcGradMat(3 : end - 2, 3 : end - 2) * timeInterval;
 end
-
-% Display final state.
-figure('color', 'white');
-imshow(concMat, []);
-% hold on;
-% quiver(horizOrMat, vertOrMat, 0);
-% hold off;
-colormap jet;
-colorbar;
-title('Final concentration');
-disp(sum(concMat(:)));
-
-end
+figure; imshow([initConcMat, concMat], []); colormap jet; colorbar;
