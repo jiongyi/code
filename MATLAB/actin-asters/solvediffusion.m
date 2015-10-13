@@ -1,4 +1,4 @@
-function solvediffusion()
+function solvediffusion2d()
 
 % Initialize variables.
 spaceInterval = 0.2;
