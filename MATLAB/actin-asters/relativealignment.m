@@ -4,11 +4,11 @@ spaceInterval = 0.2;
 noPointsPerSide = 20;
 thetaMat = 2 * pi * rand(noPointsPerSide);
 uMat = cos(thetaMat);
-uMat(:, [1, 2]) = 0; % Enforce boundary conditions: zero normal velocity.
-uMat(:, [end, end - 1]) = 0;
+uMat(:, 1) = 0; % Enforce boundary conditions: zero normal velocity.
+uMat(:, end) = 0;
 vMat = sin(thetaMat);
-vMat([1, 2], :) = 0; % Enforce boundary conditions.
-vMat([end, end - 1], :) = 0;
+vMat(1, :) = 0; % Enforce boundary conditions.
+vMat(end, :) = 0;
 
 % Plot initial vector field.
 figure('color', 'white');

@@ -2,7 +2,7 @@ function solveadvectiondiffusion2d()
 % Set up simulation domain.
 timeInterval = 0.05;    % Discretizing variables.
 spaceInterval = 0.2;
-noPointsPerSide = 1000;
+noPointsPerSide = 100;
 
 % Set up concentration field.
 averageConcentration = 10;

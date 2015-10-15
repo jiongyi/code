@@ -1,21 +1,20 @@
 function dynamicequations()
 % Initialize constants.
 meanConcentration = 100;
-noPointsPerSide = 1000;
+noPointsPerSide = 100;
 timeInterval = 0.05;
 spaceInterval = 0.2;
 speed = 1;
 diffusionCoeff = 5;
 k = 1;
-xi = 80;
+xi = 1;
 gamma = 100;
 activeTemp = 40;
-noSteps = 50;
-lambda = 0.1;
+noSteps = 2;
+lambda = 1;
 
 % Initialize concentration field matrix.
 cMat = poissrnd(meanConcentration, noPointsPerSide);
-% cMat = padarray(cMat, [1, 1], 'replicate', 'both');
 
 % Initialize orientation field matrix.
 uMat = zeros(noPointsPerSide);
@@ -36,6 +35,8 @@ cFiltObj = zeros(3);
 cFiltObj([2, 4, 6, 8]) = 1;
 horFiltObj = [-1, 0, 1];
 verFiltObj = [-1; 0; 1];
+horDiff2FiltObj = [1, -2, 1];
+verDiff2FiltObj = [1; -2; 1];
 
 % Set up Crank-Nicolson stencil for diffusion.
 alpha = diffusionCoeff * timeInterval / (spaceInterval)^2;
@@ -75,6 +76,20 @@ for i = 1 : noSteps
     vLambdaMat = -lambda * uMat .* vHorDiffMat - ...
         lambda * vMat .* vVerDiffMat;
     
+    % Update relative alignment.
+    uKMat = k * imfilter(uMat, horDiff2FiltObj, 'replicate') / ...
+        (spaceInterval^2);
+    uKMat(:, [1, end]) = 0;
+    vKMat = k * imfilter(vMat, verDiff2FiltObj, 'replicate') / ...
+        (spaceInterval^2);
+    vKMat([1, end], :) = 0;
+    
+    % Update contractility.
+    uXiMat = xi * imfilter(cMat, horFiltObj, 'replicate');
+    uXiMat(:, [1, end]) = 0;
+    vXiMat = xi * imfilter(cMat, verFiltObj, 'replicate');
+    vXiMat([1, end], :) = 0;
+    
     % Update advection.
     advectionMat = 0.25 * imfilter(cMat, cFiltObj, 'replicate') - ...
         beta * (imfilter(speed * uMat .* cMat, horFiltObj, 'replicate') + ...
@@ -94,8 +109,9 @@ for i = 1 : noSteps
     cMat = diffusionMat;
     
     % Update orientation field.
-    uMat = uMat + timeInterval * uLambdaMat;
-    vMat = vMat + timeInterval * vLambdaMat;
+    uMat = uMat + timeInterval * uLambdaMat + uKMat + timeInterval * uXiMat;
+    vMat = vMat + timeInterval * vLambdaMat + vKMat + timeInterval * vXiMat;
+    
     disp(num2str(sum(cMat(:))));
 end
 
@@ -103,4 +119,5 @@ figure('color', 'white');
 imshow(cMat, []); colormap jet; colorbar; axis equal off;
 
 figure('color', 'white');
-quiver(uMat, vMat, 'LineWidth', 2); axis equal off;
+quiver(uMat, vMat, 0, 'LineWidth', 2); axis equal off;
+
