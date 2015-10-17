@@ -1,9 +1,9 @@
 function [cMat, uMat, vMat] = dynamicequations()
 %% Initialize constants.
 % Onsager prediction for 2d is p = 3 * pi / 2 / (L^2), where L is filament
-% length. For L = 250 nm, p ~ 7.5 * 10^13 m^-2, so for dr = 2, p ~ 0.2
-cHat = 100.2;
-N = 1000;
+% length. For L = 250 nm, p ~ 7.5 * 10^13
+cHat = 150;
+N = 100;
 dt = 0.05 * 2e-2;
 dr = 0.2;
 vZero = 1;
@@ -11,8 +11,8 @@ D = 5;
 K = 5;
 xi = 80;
 gamma = 100;
-Ta = 90;
-noSteps = 1000;
+Ta = 40;
+noSteps = 30;
 lambda = xi * vZero * cHat;
 
 %% Initialize concentration and orientation field matrix.
@@ -135,6 +135,8 @@ set(gca, 'box', 'off', 'tickdir', 'out');
         magMat = uMat.^2 + vMat.^2;
         uMat = uMat + dt * gamma * (1 - magMat) .* uMat;
         vMat = vMat + dt * gamma * (1 - magMat) .* vMat;
+%     uMat = uMat ./ magMat + eps;
+%     vMat = vMat ./ magMat + eps;
     end
     function activeforce()
     uMat = uMat + dt * Ta ./ cMat .* randn(N);
