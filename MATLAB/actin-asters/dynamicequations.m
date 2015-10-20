@@ -4,15 +4,15 @@ function [cMat, uMat, vMat] = dynamicequations()
 % length. For L = 250 nm, p ~ 7.5 * 10^13 m^-2, so for dr = 2, p ~ 0.2
 cHat = 100;
 N = 100;
-dt = 0.05 * 2e-3;
+dt = 0.05 * 4e-2;
 dr = 0.2;
 vZero = 1;
 D = 5;
 K = 5;
-xi = 80;
+xi = 8;
 gamma = 100;
-Ta = 0;
-noSteps = 10000;
+Ta = 20;
+noSteps = 500;
 lambda = xi * vZero * cHat;
 
 %% Initialize concentration and orientation field matrix.
@@ -86,15 +86,13 @@ set(gca, 'box', 'off', 'tickdir', 'out');
         imfilter(vZero * vMat .* cMat, yDiffFiltObj, 'replicate'));
     end
     function diffusion()
+        rMat = 2 * cMat + alpha * imfilter(cMat, [1; -2; 1], 'replicate');
     for j = 1 : N
-        cMat(j, :) = tridag(aCol, bCol, cCol, ...
-            2 * cMat(j, :)' + ...
-            imfilter(cMat(j, :)', [1; -2; 1], 'replicate'));
+        cMat(j, :) = tridag(aCol, bCol, cCol, rMat(:, j))';
     end
+        rMat = 2 * cMat + alpha * imfilter(cMat, [1, -2, 1], 'replicate');
     for k = 1 : N
-        cMat(:, k) = tridag(aCol, bCol, cCol, ...
-            2 * cMat(:, k) + ...
-            imfilter(cMat(:, k), [1, -2, 1], 'replicate'));
+        cMat(:, k) = tridag(aCol, bCol, cCol, rMat(k, :)');
     end
         
     end
