@@ -4,15 +4,16 @@ function [cMat, uMat, vMat] = dynamicequations()
 % length. For L = 250 nm, p ~ 7.5 * 10^13 m^-2, so for dr = 2, p ~ 0.2
 cHat = 101;
 N = 100;
-dt = 0.05 * 5e-2;
+dt = 0.05 * 3e-2;
+% dt = 1.25e-4;
 dr = 0.2;
 vZero = 1;
 D = 5;
 K = 5;
-xi = 7;
+xi = 10;
 gamma = 100;
-Ta = 0;
-noSteps = 500;
+Ta = 20;
+noSteps = 1000;
 lambda = xi * vZero * cHat;
 
 %% Initialize concentration and orientation field matrix.
@@ -33,7 +34,7 @@ vZeroMat = vMat;
 sumZeroMat = uZeroMat + vZeroMat;
 
 % Set up advection matrices for the Lax method.
-beta = 0.5 * dt / dr;
+beta = vZero * dt / (2 * dr);
 cFiltObj = zeros(3);
 cFiltObj([2, 4, 6, 8]) = 1;
 xDiffFiltObj = [-1, 0, 1];
@@ -48,19 +49,6 @@ cHalfMat = zeros(N);
 
 % Apply no-flux boundary conditions.
 bCol([1, end]) = (1 + alpha);
-
-% Generate right-hand side matrix.
-rhsMat = zeros(N);
-for i = 1 : N
-    rhsMat(i, i) = (1 - 2 * alpha);
-end
-for i = 1 : (N - 1)
-    rhsMat(i + 1, i) = alpha;
-    rhsMat(i, i + 1) = alpha;
-end
-rhsMat(1, 1) = 1 - alpha;
-rhsMat(N, N) = 1 - alpha;
-
 
 % Set up alignment matrix stencil.
 kappa = K * dt / (dr)^2;
@@ -101,26 +89,13 @@ ylabel('Mean divergence', 'fontsize', 14);
 
 %% Subfunctions
     function activeadvection()
-        cMat = 0.25 * imfilter(cMat, cFiltObj, 'replicate') - ...
-        beta * (imfilter(vZero * uOldMat .* cMat, xDiffFiltObj, 'replicate') + ...
-        imfilter(vZero * vOldMat .* cMat, yDiffFiltObj, 'replicate'));
+        cMat = 0.25 * imfilter(cMat, cFiltObj, 'replicate') - beta * (...
+            uOldMat .* imfilter(cMat, [-1, 0, 1], 'replicate') + ...
+            cMat .* imfilter(uOldMat, [-1, 0, 1], 'replicate') + ...
+            vOldMat .* imfilter(cMat, [-1; 0; 1], 'replicate') + ...
+            cMat .* imfilter(vOldMat, [-1; 0; 1], 'replicate'));
     end
     function diffusion()
-%         if mod(s, 2) == 0
-%             for j = 1 : N
-%                 cHalfMat(j, :) = tridag(aCol, bCol, cCol, rhsMat * cMat(:, j))';
-%             end
-%             for k = 1 : N
-%                 cMat(:, k) = tridag(aCol, bCol, cCol, rhsMat * cHalfMat(k, :)');
-%             end
-%         else
-%             for k = 1 : N
-%                 cHalfMat(:, k) = tridag(aCol, bCol, cCol, rhsMat * cMat(k, :)');
-%             end
-%             for j = 1 : N
-%                 cMat(j, :) = tridag(aCol, bCol, cCol, rhsMat * cHalfMat(:, j))';
-%             end
-%         end
         for j = 1 : N
             cHalfMat(j, :) = tridag(aCol, bCol, cCol, cMat(j, :)')';
         end
