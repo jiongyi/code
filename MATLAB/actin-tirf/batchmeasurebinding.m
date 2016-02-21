@@ -12,16 +12,25 @@ noImages = numel(fileNameStrCell);
 normMeanIntCell = cell(1, noImages);
 for i = 1 : noImages
     TmpActin.rawIm = imread([folderNameStr, fileNameStrCell{i}]);
-    tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 7), 'C1.tiff'];
+    tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 11), '488_C1.tiff'];
     TmpAbp.rawIm = imread([folderNameStr, tmpAbpFileNameStr]);
-    normMeanIntCell{i} = measurebinding(TmpActin, TmpAbp);
+    [normMeanIntCell{i}, tmpOverIm] = measurebinding(TmpActin, TmpAbp);
+    imwrite(tmpOverIm, [folderNameStr, ...
+        fileNameStrCell{i}(1 : end - 12), '_bw.tiff']);
 end
 
 % Plot measurements.
 batchNormMeanIntRow = [normMeanIntCell{:}];
+binRow = linspace(min(batchNormMeanIntRow), ...
+    ceil(max(batchNormMeanIntRow)), 20);
+countRow = hist(batchNormMeanIntRow, binRow);
+figure('color', 'white');
+bar(binRow, countRow, 'hist');
+set(gca, 'box', 'off', 'tickdir', 'out', 'fontsize', 14);
+
 end
 
-function normMeanIntRow = measurebinding(Actin, Abp)
+function [normMeanIntRow, overIm] = measurebinding(Actin, Abp)
 
 % Binarize actin image.
 Actin.normIm = mat2gray(Actin.rawIm);
@@ -42,4 +51,7 @@ for i = 1 : noSegments
 end
 
 normMeanIntRow = [Segment(:).normMeanInt];
+
+% Make binarized.
+overIm = imoverlay(Actin.normIm, bwperim(Actin.bwIm), [0, 1, 0]);
 end
