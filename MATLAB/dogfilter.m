@@ -1,13 +1,9 @@
-function dogIm = dogfilter(rawIm, objWidth)
+function dogIm = dogfilter(rawIm, sigma1, sigma2)
 % Applies difference-of-gaussian filtering to rawIm. Kernel size is
 % determined from objWidth. The output is scaled to [0, 1].
 if ~strcmp(class(rawIm), 'double')
     error('Convert image to class double first.');
 end
-
-% Calculate sigmas.
-sigma1 = objWidth / (1 + sqrt(2));
-sigma2 = sqrt(2) * objWidth;
 
 % Filter and subtract.
 smallIm = imfilter(rawIm, fspecial('gaussian', ...

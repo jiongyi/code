@@ -1,40 +1,46 @@
-function measurebinding()
-% Select actin channel image.
-[fileNameStr, folderNameStr] = uigetfile('*C0.tiff', 'Select actin image');
-
-% Load actin image.
-Actin.rawIm = imread([folderNameStr, fileNameStr]);
-
-% Load actin binding protein image.
-abpFileNameStr = [fileNameStr(1 : end - 7), 'C1.tiff'];
-Abp.rawIm = imread([folderNameStr, abpFileNameStr]);
+function [normMeanIntRow, overIm] = measurebinding(Actin, Abp)
 
 % Binarize actin image.
 Actin.normIm = mat2gray(Actin.rawIm);
-Actin.eqIm = adapthisteq(Actin.normIm);
-Actin.ocIm = imopenclose(Actin.eqIm, 2);
-Actin.dogIm = mat2gray(dogfilter(Actin.ocIm, 4));
-Actin.bwIm = im2bw(Actin.dogIm, graythresh(Actin.dogIm));
+Actin.eqIm = adapthisteq(Actin.normIm, 'distribution', 'exponential');
+Actin.coIm = imcloseopen(Actin.eqIm, 2);
+Actin.dogIm = dogfilter(Actin.coIm, 2, 6);
+Actin.bwIm = im2bw(mat2gray(Actin.dogIm), ...
+    graythresh(mat2gray(Actin.dogIm)));
+Actin.bwIm = imclearborder(Actin.bwIm);
 
-% Segment actin filaments and compute properties.
-Segment = regionprops(Actin.bwIm, Abp.rawIm, 'Area', 'MajorAxisLength', ...
-    'Perimeter', 'PixelIdxList', 'MeanIntensity', 'PixelValues');
-
-% Normalize to background.
-noSegments = numel(Segment);
-meanBackInt = mean(Abp.rawIm(~Actin.bwIm));
-for i = 1 : noSegments
-    Segment(i).normMeanInt = Segment(i).MeanIntensity / meanBackInt;
+% Region properties.
+Filaments = regionprops(Actin.bwIm, Abp.rawIm, 'PixelIdxList', ...
+    'PixelValues', 'Image');
+noFilaments = numel(Filaments);
+for i = 1 : noFilaments
+    Filaments(i).nmLongestPath = 160 * longestpath(Filaments(i).Image);
 end
 
-figure('color', 'white');
-subplot(121);
-imshowpair(mat2gray(Abp.rawIm), bwperim(Actin.bwIm));
-axis off;
+% Ignore elements that are shorter than 2 um.
+isTooShortRow = [Filaments(:).nmLongestPath] <= 2000;
+Filaments(isTooShortRow) = [];
+Actin.bwIm = ismember(labelmatrix(bwconncomp(Actin.bwIm)), ...
+    find(~isTooShortRow));
 
-subplot(122);
-hist([Segment(:).normMeanInt]);
-set(gca, 'box', 'off', 'tickdir', 'out');
-xlabel('Average ABP intensity');
-ylabel('Counts');
+% Calculate binding.
+meanBackInt = mean(Abp.rawIm(~Actin.bwIm));
+noFilaments = numel(Filaments);
+for i = 1 : noFilaments
+    Filaments(i).normMeanInt = sum(Filaments(i).PixelValues) / meanBackInt / ...
+        Filaments(i).nmLongestPath;
+end
+
+normMeanIntRow = [Filaments(:).normMeanInt];
+
+% Make binarized.
+overIm = imoverlay(Actin.normIm, bwperim(Actin.bwIm), [0, 1, 0]);
+end
+
+function pathLength = longestpath(im)
+    thinIm = bwmorph(im, 'thin', inf);
+    [yMat, xMat] = find(bwmorph(thinIm, 'endpoints'));
+    dIm = bwdistgeodesic(thinIm, xMat(1), yMat(1), 'quasi-euclidean');
+    dIm = round(dIm * 8) / 8;
+    pathLength = max(dIm(:));
 end

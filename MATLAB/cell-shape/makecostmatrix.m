@@ -6,7 +6,7 @@ topLeftMat = pdist2(vertcat(CurrObjStats(:).Centroid), ...
     vertcat(NextObjStats(:).Centroid));
 
 % Determine distance thresholds.
-majorAxisLengthCol = 1.5 * [CurrObjStats(:).MajorAxisLength]';
+majorAxisLengthCol = 0.3 * [CurrObjStats(:).MajorAxisLength]';
 isTooFarMat = bsxfun(@ge, topLeftMat, majorAxisLengthCol);
 topLeftMat(isTooFarMat) = inf;
 
