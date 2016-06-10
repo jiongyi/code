@@ -44,7 +44,11 @@ end
 function pathLength = longestpath(im)
     thinIm = bwmorph(im, 'thin', inf);
     [yMat, xMat] = find(bwmorph(thinIm, 'endpoints'));
-    dIm = bwdistgeodesic(thinIm, xMat(1), yMat(1), 'quasi-euclidean');
-    dIm = round(dIm * 8) / 8;
-    pathLength = max(dIm(:));
+    if isempty(yMat) || isempty(xMat)
+        pathLength = 0;
+    else
+        dIm = bwdistgeodesic(thinIm, xMat(1), yMat(1), 'quasi-euclidean');
+        dIm = round(dIm * 8) / 8;
+        pathLength = max(dIm(:));
+    end
 end
