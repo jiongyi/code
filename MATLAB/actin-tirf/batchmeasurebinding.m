@@ -22,10 +22,14 @@ for i = 1 : noImages
     TmpActin.rawIm = imread([folderNameStr, fileNameStrCell{i}]);
     tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 11), '488_C1.tiff'];
     TmpAbp.rawIm = imread([folderNameStr, tmpAbpFileNameStr]);
-    [FrameCell{i}, tmpOverIm] = measurebinding(TmpActin, TmpAbp, ...
-        flatIm);
+    [FrameCell{i}, tmpOverIm, tmpActinFlatIm, tmpAllOverIm] = ...
+        measurebinding(TmpActin, TmpAbp, flatIm);
     imwrite(tmpOverIm, [folderNameStr, ...
         fileNameStrCell{i}(1 : end - 12), '_bw.tiff']);
+    imwrite(tmpActinFlatIm, [folderNameStr, ...
+        fileNameStrCell{i}(1 : end - 12), '_flat.tiff']);
+    imwrite(tmpAllOverIm, [folderNameStr, ...
+        fileNameStrCell{i}(1 : end - 12), '_all_bw.tiff']);
 end
 
 % Calculate distribution parameters.
