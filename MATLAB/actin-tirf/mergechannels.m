@@ -27,7 +27,7 @@ abpImStack = adapthisteq(mat2gray(cat(2, abpImCell{:})), ...
     'distribution', 'exponential');
 
 % Reshape images.
-actinImStack = reshape(actinImStack, [512, 512, noImages]).^0.6;
+actinImStack = reshape(actinImStack, [512, 512, noImages]).^1;
 abpImStack = reshape(abpImStack, [512, 512, noImages]).^0.5;
 
 % Convert to rgb and save.
