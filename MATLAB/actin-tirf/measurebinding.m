@@ -1,18 +1,15 @@
-function [Filaments, overIm, abpFlatIm, allOverIm] = measurebinding(...
+function [Filaments, overIm] = measurebinding(...
     Actin, Abp, flatIm)
 
 % Binarize actin image.
 Actin.normIm = mat2gray(Actin.rawIm);
-Actin.eqIm = adapthisteq(Actin.normIm, 'distribution', 'exponential');
-Actin.coIm = imcloseopen(Actin.eqIm, 2);
-Actin.dogIm = dogfilter(Actin.coIm, 2, 6);
+Actin.coIm = imcloseopen(Actin.normIm, 2);
+Actin.dogIm = dogfilter(Actin.coIm, 4);
 Actin.bwIm = im2bw(mat2gray(Actin.dogIm), ...
     graythresh(mat2gray(Actin.dogIm)));
-Actin.bwIm = imclearborder(Actin.bwIm);
 
 % Flatten abp image.
 Abp.flatIm = im2double(Abp.rawIm) ./ flatIm;
-abpFlatIm = Abp.flatIm;
 
 % Region properties.
 Filaments = regionprops(Actin.bwIm, Abp.flatIm, 'PixelIdxList', ...
@@ -23,7 +20,7 @@ for i = 1 : noFilaments
 end
 
 % Ignore elements that are shorter than 2 um.
-isTooShortRow = [Filaments(:).nmLongestPath] <= 2000;
+isTooShortRow = [Filaments(:).nmLongestPath] <= 1000;
 Filaments(isTooShortRow) = [];
 allBwIm = Actin.bwIm;
 allOverIm = imoverlay(Actin.normIm, bwperim(allBwIm), [1, 0, 0]);
@@ -41,8 +38,8 @@ for i = 1 : noFilaments
         Filaments(i).PixelValues)) / meanBackInt;
 end
 
-% Make binarized.
-overIm = imoverlay(Actin.normIm, bwperim(Actin.bwIm), [0, 1, 0]);
+% Make overlaid.
+overIm = imoverlay(mat2gray(Abp.flatIm), bwperim(Actin.bwIm), [0, 1, 0]);
 end
 
 function pathLength = longestpath(im)

@@ -6,7 +6,7 @@ if strcmp(class(rawIm), 'double')
 end
 
 % Create structuring element.
-structEl = strel('disk', radius, 0);
+structEl = strel('disk', radius);
 
 % Close by reconstruction.
 dilatedIm = imdilate(rawIm, structEl);
