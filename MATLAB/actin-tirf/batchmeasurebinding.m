@@ -41,4 +41,7 @@ nmLongestPathCell = cellfun(@(x) [x(:).nmLongestPath], FrameCell, ...
 nmLongestPathRow = [nmLongestPathCell{:}];
 Binding.totalPathLength = sum(nmLongestPathRow);
 
+% Create field for concentration.
+Binding.nMConcentration = [];
+
 end
