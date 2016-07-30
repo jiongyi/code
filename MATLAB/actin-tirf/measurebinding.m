@@ -1,5 +1,4 @@
-function [Filaments, overIm] = measurebinding(...
-    Actin, Abp, flatIm)
+function [Filaments, overIm] = measurebinding(Actin, Abp)
 
 % Binarize actin image.
 Actin.normIm = mat2gray(Actin.rawIm);
@@ -9,7 +8,7 @@ Actin.bwIm = im2bw(mat2gray(Actin.dogIm), ...
     graythresh(mat2gray(Actin.dogIm)));
 
 % Flatten abp image.
-Abp.flatIm = im2double(Abp.rawIm) ./ flatIm;
+Abp.flatIm = imtophat(Abp.rawIm, strel('ball', 8, 8));
 
 % Region properties.
 Filaments = regionprops(Actin.bwIm, Abp.flatIm, 'PixelIdxList', ...
@@ -23,19 +22,17 @@ end
 isTooShortRow = [Filaments(:).nmLongestPath] <= 1000;
 Filaments(isTooShortRow) = [];
 allBwIm = Actin.bwIm;
-allOverIm = imoverlay(Actin.normIm, bwperim(allBwIm), [1, 0, 0]);
 Actin.bwIm = ismember(labelmatrix(bwconncomp(Actin.bwIm)), ...
     find(~isTooShortRow));
 
 % Calculate binding.
-meanBackInt = median(Abp.flatIm(~allBwIm));
+meanBackInt = mean(Abp.flatIm(~allBwIm));
 noFilaments = numel(Filaments);
 for i = 1 : noFilaments
     % Calculate mean intensity normalized to mean background signal.
-    Filaments(i).abpNormMeanInt = mean(Filaments(i).PixelValues) / ...
+    Filaments(i).abpNormMeanInt = mean(Filaments(i).PixelValues) - ...
         meanBackInt;
-    Filaments(i).abpStdNormMeanInt = std(bootstrp(1000, @mean, ...
-        Filaments(i).PixelValues)) / meanBackInt;
+    Filaments(i).abpStdNormMeanInt = std(Filaments(i).abpNormMeanInt);
 end
 
 % Make overlaid.

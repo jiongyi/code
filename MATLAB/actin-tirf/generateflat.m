@@ -4,6 +4,6 @@ function flatIm = generateflat(folderNameStr, fileNameStr)
 rawImCll = cellfun(@(x) im2double(imread([folderNameStr, x])), ...
     fileNameStr, 'UniformOutput', false);
 
-medianIm = median(cat(3, rawImCll{:}), 3);
-flatIm = medianIm / mean(medianIm(:));
+meanIm = mean(cat(3, rawImCll{:}), 3);
+flatIm = meanIm / mean(meanIm(:));
 end

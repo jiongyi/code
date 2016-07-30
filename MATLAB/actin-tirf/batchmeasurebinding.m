@@ -8,13 +8,6 @@ if ~iscell(fileNameStrCell)
     fileNameStrCell = {fileNameStrCell};
 end
 
-% Generate abp channel image names.
-abpFileNameStr = cellfun(@(x) [x(1 : end - 11), 't488_C1.tiff'], ...
-    fileNameStrCell, 'UniformOutput', false);
-
-% Generate flattening image.
-flatIm = generateflat(folderNameStr, abpFileNameStr);
-
 % Load and process images.
 noImages = numel(fileNameStrCell);
 FrameCell = cell(1, noImages);
@@ -22,8 +15,7 @@ for i = 1 : noImages
     TmpActin.rawIm = imread([folderNameStr, fileNameStrCell{i}]);
     tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 11), 't488_C1.tiff'];
     TmpAbp.rawIm = imread([folderNameStr, tmpAbpFileNameStr]);
-    [FrameCell{i}, tmpOverIm]  = ...
-        measurebinding(TmpActin, TmpAbp, flatIm);
+    [FrameCell{i}, tmpOverIm]  = measurebinding(TmpActin, TmpAbp);
     imwrite(tmpOverIm, [folderNameStr, ...
         fileNameStrCell{i}(1 : end - 12), '_bw.tiff']);
 end
