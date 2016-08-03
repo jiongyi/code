@@ -32,9 +32,9 @@ btBndRow = meanSnrRow - stdSnrRow;
 % figure('color', 'white', 'PaperPositionMode', 'auto');
 % axes('ActivePositionProperty', 'OuterPosition', 'box', 'off', ...
 %     'tickdir', 'out', 'fontsize', 14, 'linewidth', 1.5);
-% 
-% xlabel('Time (min)');
-% ylabel('Average EGFP-vinculin intensity (AU)');
+
+xlabel('Time (min)');
+ylabel('Average EGFP-vinculin intensity (AU)');
 
 hold on;
 plot(meanSnrRow, 'b', 'linewidth', 1.5);
