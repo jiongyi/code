@@ -7,18 +7,17 @@ Actin.dogIm = dogfilter(Actin.coIm, 4);
 Actin.bwIm = im2bw(mat2gray(Actin.dogIm), ...
     graythresh(mat2gray(Actin.dogIm)));
 
-% Flatten abp image.
-Abp.flatIm = imtophat(Abp.rawIm, strel('ball', 8, 8));
-
 % Region properties.
-Filaments = regionprops(Actin.bwIm, Abp.flatIm, 'PixelIdxList', ...
+Filaments = regionprops(Actin.bwIm, Abp.rawIm, 'PixelIdxList', ...
     'PixelValues', 'Image');
 noFilaments = numel(Filaments);
+
+% Calculate path length.
 for i = 1 : noFilaments
     Filaments(i).nmLongestPath = 160 * longestpath(Filaments(i).Image);
 end
 
-% Ignore elements that are shorter than 2 um.
+% Ignore elements that are shorter than 1 um.
 isTooShortRow = [Filaments(:).nmLongestPath] <= 1000;
 Filaments(isTooShortRow) = [];
 allBwIm = Actin.bwIm;
@@ -26,17 +25,20 @@ Actin.bwIm = ismember(labelmatrix(bwconncomp(Actin.bwIm)), ...
     find(~isTooShortRow));
 
 % Calculate binding.
-meanBackInt = mean(Abp.flatIm(~allBwIm));
+meanBackInt = mean(Abp.rawIm(~allBwIm));
 noFilaments = numel(Filaments);
 for i = 1 : noFilaments
     % Calculate mean intensity normalized to mean background signal.
     Filaments(i).abpNormMeanInt = mean(Filaments(i).PixelValues) - ...
         meanBackInt;
+    if Filaments(i).abpNormMeanInt < 0
+        Filaments(i).abpNormMeanInt = 0;
+    end
     Filaments(i).abpStdNormMeanInt = std(Filaments(i).abpNormMeanInt);
 end
 
-% Make overlaid.
-overIm = imoverlay(mat2gray(Abp.flatIm), bwperim(Actin.bwIm), [0, 1, 0]);
+% Make image overlay.
+overIm = imoverlay(mat2gray(Abp.rawIm), bwperim(Actin.bwIm), [0, 1, 0]);
 end
 
 function pathLength = longestpath(im)
