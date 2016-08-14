@@ -1,15 +1,21 @@
-function [Filaments, overIm] = measurebinding(Actin, Abp)
+function [Filaments, overIm] = measurebinding(Actin, Abp, flatChoiceStr)
 
 % Binarize actin image.
 Actin.normIm = mat2gray(Actin.rawIm);
 Actin.coIm = imcloseopen(Actin.normIm, 2);
-Actin.dogIm = dogfilter(Actin.coIm, 4);
+Actin.dogIm = dogfilter(Actin.coIm, 6);
 Actin.bwIm = im2bw(mat2gray(Actin.dogIm), ...
     graythresh(mat2gray(Actin.dogIm)));
 
 % Region properties.
-Filaments = regionprops(Actin.bwIm, Abp.rawIm, 'PixelIdxList', ...
-    'PixelValues', 'Image');
+if strcmp(flatChoiceStr, 'cidre')
+    Filaments = regionprops(Actin.bwIm, Abp.rawIm, 'PixelIdxList', ...
+        'PixelValues', 'Image');
+elseif strcmp(flatChoiceStr, 'tophat')
+    Abp.tophatIm = imtophat(Abp.rawIm, strel('ball', 5, 5));
+    Filaments = regionprops(Actin.bwIm, Abp.tophatIm, 'PixelIdxList', ...
+        'PixelValues', 'Image');
+end
 noFilaments = numel(Filaments);
 
 % Calculate path length.
@@ -25,7 +31,11 @@ Actin.bwIm = ismember(labelmatrix(bwconncomp(Actin.bwIm)), ...
     find(~isTooShortRow));
 
 % Calculate binding.
-meanBackInt = mean(Abp.rawIm(~allBwIm));
+if strcmp(flatChoiceStr, 'cidre')
+    meanBackInt = mean(Abp.rawIm(~allBwIm));
+elseif strcmp(flatChoiceStr, 'tophat')
+    meanBackInt = mean(Abp.tophatIm(~allBwIm));
+end
 noFilaments = numel(Filaments);
 for i = 1 : noFilaments
     % Calculate mean intensity normalized to mean background signal.
@@ -38,9 +48,13 @@ for i = 1 : noFilaments
 end
 
 % Make image overlay.
-overIm = imoverlay(mat2gray(Abp.rawIm), bwperim(Actin.bwIm), [0, 1, 0]);
+if strcmp(flatChoiceStr, 'cidre')
+    overIm = imoverlay(mat2gray(Abp.rawIm), bwperim(Actin.bwIm), [0, 1, 0]);
+elseif strcmp(flatChoiceStr, 'tophat')
+    overIm = imoverlay(mat2gray(Abp.tophatIm), bwperim(Actin.bwIm), [0, 1, 0]);
 end
 
+end
 function pathLength = longestpath(im)
     thinIm = bwmorph(im, 'thin', inf);
     [yMat, xMat] = find(bwmorph(thinIm, 'endpoints'));

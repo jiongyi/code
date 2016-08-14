@@ -15,7 +15,7 @@ for i = 1 : noImages
     TmpActin.rawIm = imread([folderNameStr, fileNameStrCell{i}]);
     tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 11), 't488_C1.tiff'];
     TmpAbp.rawIm = imread([folderNameStr, tmpAbpFileNameStr]);
-    [FrameCell{i}, tmpOverIm]  = measurebinding(TmpActin, TmpAbp);
+    [FrameCell{i}, tmpOverIm]  = measurebinding(TmpActin, TmpAbp, 'tophat');
     imwrite(tmpOverIm, [folderNameStr, ...
         fileNameStrCell{i}(1 : end - 12), '_bw.tiff']);
 end
@@ -25,7 +25,7 @@ abpNormMeanIntCell = cellfun(@(x) [x(:).abpNormMeanInt], FrameCell, ...
     'UniformOutput', false);
 Binding.normMeanIntRow = [abpNormMeanIntCell{:}];
 Binding.meanNormMeanInt = mean(Binding.normMeanIntRow);
-Binding.stdNormMeanInt = mean(bootstrp(1000, @std, ...
+Binding.stdNormMeanInt = mean(bootstrp(1000, @std, ...63
     Binding.normMeanIntRow));
 
 nmLongestPathCell = cellfun(@(x) [x(:).nmLongestPath], FrameCell, ...
