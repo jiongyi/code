@@ -1,14 +1,14 @@
 function makergbstack()
 
 % Get file names.
-[redChannelfileNameStrCell, folderNameStr] = uigetfile('*_t561_C0.tiff', ...
+[redChannelfileNameStrCell, folderNameStr] = uigetfile('*_Cy5_C0.tiff', ...
     'Select red channel images', 'MultiSelect', 'on');
 if ~iscell(redChannelfileNameStrCell)
     redChannelfileNameStrCell = {redChannelfileNameStrCell};
 end
 
 greenChannelfileNameStrCell = cellfun(@(x) ...
-    [x(1 : end - 13), '_t488_C1.tiff'], redChannelfileNameStrCell, ...
+    [x(1 : end - 12), '_t488_C1.tiff'], redChannelfileNameStrCell, ...
     'UniformOutput', false);
 
 % Load images.
@@ -17,23 +17,27 @@ redChannelImgsCell = cellfun(@(x) imread([folderNameStr, x]), ...
 greenChannelImgsCell = cellfun(@(x) imread([folderNameStr, x]), ...
     greenChannelfileNameStrCell, 'UniformOutput', false);
 
+% Make montages for image processing.
+redChannelMont = mat2gray(cat(2, redChannelImgsCell{:}));
+greenChannelMont = mat2gray(cat(2, greenChannelImgsCell{:}));
+
+% Wiener2
+redChannelMont = wiener2(redChannelMont);
+greenChannelMont = wiener2(greenChannelMont);
+
 % Enhance contrast.
-redChannelImgsCell = cellfun(@(x) ...
-    adapthisteq(x, 'distribution', 'exponential'), redChannelImgsCell, 'UniformOutput', false);
-greenChannelImgsCell = cellfun(@(x) ...
-    adapthisteq(x, 'distribution', 'exponential'), greenChannelImgsCell, 'UniformOutput', false);
+redChannelMont = imadjust(redChannelMont);
+greenChannelMont = imadjust(greenChannelMont); 
+
 
 % Subtract background.
-structEl = strel('disk', 20);
-redChannelImgsCell = cellfun(@(x) imtophat(x, structEl), ...
-    redChannelImgsCell, 'UniformOutput', false);
-greenChannelImgsCell = cellfun(@(x) imtophat(x, structEl), ...
-    greenChannelImgsCell, 'UniformOutput', false);
+redChannelMont = imtophat(redChannelMont, strel('ball', 50, 50));
+greenChannelMont = imtophat(greenChannelMont, strel('ball', 50, 50));
 
-% Normalize and stack.
-redChannelStack = mat2gray(cat(3, redChannelImgsCell{:}));
-greenChannelStack = mat2gray(cat(3, greenChannelImgsCell{:}));
-
+% Stack.
+noImages = numel(redChannelImgsCell);
+redChannelStack = mat2gray(reshape(redChannelMont, [512, 512, noImages]));
+greenChannelStack = mat2gray(reshape(greenChannelMont, [512, 512, noImages]));
 % Make rgb stack.
 blueChannelIm = zeros(512, 512);
 noSlices = numel(redChannelfileNameStrCell);

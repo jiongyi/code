@@ -9,8 +9,7 @@ function TimeLapse = ...
 actinStack = imstack([folderNameStr, fileNameStr]);
 abpStack = imstack([folderNameStr, fileNameStr(1 : end - 11), ...
     't488_C1.tiff']);
-% noImages = size(actinStack, 3);
-noImages = 99;
+noImages = size(actinStack, 3);
 TimeLapse.meanIntRow = zeros(1, noImages);
 TimeLapse.stdIntRow = zeros(1, noImages);
 for i = 1 : noImages
