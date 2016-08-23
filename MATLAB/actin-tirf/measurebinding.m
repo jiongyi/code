@@ -44,9 +44,6 @@ for i = 1 : noFilaments
     % Calculate mean intensity normalized to mean background signal.
    Filaments(i).abpNormMeanInt = mean(Filaments(i).PixelValues) - ...
         meanBackInt;
-    if Filaments(i).abpNormMeanInt < 0
-        Filaments(i).abpNormMeanInt = 0;
-    end
     Filaments(i).abpStdNormMeanInt = std(Filaments(i).abpNormMeanInt);
 end
 
