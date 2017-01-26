@@ -29,18 +29,18 @@ upBndRow = meanSnrRow + stdSnrRow;
 btBndRow = meanSnrRow - stdSnrRow;
 
 % Plot.
-% figure('color', 'white', 'PaperPositionMode', 'auto');
-% axes('ActivePositionProperty', 'OuterPosition', 'box', 'off', ...
-%     'tickdir', 'out', 'fontsize', 14, 'linewidth', 1.5);
+figure('color', 'white', 'PaperPositionMode', 'auto');
+axes('ActivePositionProperty', 'OuterPosition', 'box', 'off', ...
+    'tickdir', 'out', 'fontsize', 14, 'linewidth', 1.5);
 
 xlabel('Time (min)');
 ylabel('Average EGFP-vinculin intensity (AU)');
 
 hold on;
-plot(meanSnrRow, 'b', 'linewidth', 1.5);
+plot(meanSnrRow, 'k', 'linewidth', 1.5);
 hArea = area([1 : noFrames, noFrames : -1 : 1], ...
     [btBndRow, upBndRow(end : -1 : 1)]);
-set(hArea, 'EdgeColor', 'none', 'FaceColor', 'b');
+set(hArea, 'EdgeColor', 'none', 'FaceColor', 'k');
 set(get(hArea, 'Children'), 'FaceAlpha', 0.3);
 hold off;
 

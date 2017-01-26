@@ -13,11 +13,11 @@ noImages = numel(fileNameStrCell);
 FrameCell = cell(1, noImages);
 for i = 1 : noImages
     TmpActin.rawIm = imread([folderNameStr, fileNameStrCell{i}]);
-    tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 11), 't488_C1.tiff'];
+    tmpAbpFileNameStr = [fileNameStrCell{i}(1 : end - 12), 't488_C1.tiff'];
     TmpAbp.rawIm = imread([folderNameStr, tmpAbpFileNameStr]);
     [FrameCell{i}, tmpOverIm]  = measurebinding(TmpActin, TmpAbp, 'tophat');
     imwrite(tmpOverIm, [folderNameStr, ...
-        fileNameStrCell{i}(1 : end - 12), '_bw.tiff']);
+        fileNameStrCell{i}(1 : end - 13), '_bw.tiff']);
 end
 
 % Calculate distribution parameters.
