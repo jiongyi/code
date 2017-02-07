@@ -5,7 +5,7 @@ N = 1e4; % number of iterations
 n = 10; % nucleation rate
 kappa = 0.5; % capping rate
 d0 = 0.5; % free dissociation rate
-VMax = 240; % free polymerization rate
+VMax = 500; % free polymerization rate
 VDep = 2.2; % free depolymerization rate
 l = 2.2; % average length increment
 kT = 4.1; % thermal energy
@@ -59,11 +59,11 @@ for i = 1 : (N - 1)
 end
 aMean = mean(a);
 wMean = mean(w);
-% figure;
-% t = 0 : dt : dt * (N - 1);
-% plot(t, a);
-% hold on;
-% plot(t, w);
-% hold off;
-% legend('attached', 'working');
+figure;
+t = 0 : dt : dt * (N - 1);
+plot(t, a);
+hold on;
+plot(t, w);
+hold off;
+legend('attached', 'working');
 end
