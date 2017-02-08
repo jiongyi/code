@@ -1,4 +1,7 @@
-function vEq = analyticalebr(fL)
+function vEq = analyticalebr(fL, doPlot)
+if nargin == 1
+    doPlot = 'no';
+end
 
 n = 10; % nucleation rate
 kappa = 0.5; % capping rate
@@ -23,14 +26,19 @@ wv2 = wv.^2;
 rhs = e2 * exp(-e1 * v .* wv2 - e4 ./ wv) - e3;
 delta = abs(v - rhs);
 vEq = v(delta == min(delta));
-% figure('color', 'white', 'PaperPositionMode', 'auto');
-% plot(v, rhs);
-% hold on;
-% plot(v, v);
-% hold off;
-% set(gca, 'tickdir', 'out', 'box', 'off');
-% xlabel('velocity = V / V_0');
-% legend('RHS', 'LHS');
+
+% Plot.
+if strcmp(doPlot, 'yes')
+    figure('color', 'white', 'PaperPositionMode', 'auto');
+    plot(v, rhs);
+    hold on;
+    plot(v, v);
+    hold off;
+    set(gca, 'tickdir', 'out', 'box', 'off');
+    xlabel('velocity = V / V_0');
+    legend('RHS', 'LHS');
+end
+
 end
 
 function y = w(v)
