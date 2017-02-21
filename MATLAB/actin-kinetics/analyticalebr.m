@@ -1,4 +1,4 @@
-function vEq = analyticalebr(fL, doPlot)
+function [vEq, aEq, wEq] = analyticalebr(fL, doPlot)
 if nargin == 1
     doPlot = 'no';
 end
@@ -26,6 +26,8 @@ wv2 = wv.^2;
 rhs = e2 * exp(-e1 * v .* wv2 - e4 ./ wv) - e3;
 delta = abs(v - rhs);
 vEq = v(delta == min(delta));
+aEq = n / d0 * w(vEq);
+wEq = n / kappa;
 
 % Plot.
 if strcmp(doPlot, 'yes')
