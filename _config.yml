@@ -1,1 +1,23 @@
-theme: jekyll-theme-minimal
+# Site settings
+title: Software
+email: jiongyi.tan@ucsf.edu
+description: "github page for software repository"
+baseurl: ""
+url: "jiongyitan.me/software"
+twitter_username:
+github_username:  jiongyi
+
+# Build settings
+markdown: kramdown
+permalink: pretty
+highlighter: rouge
+timezone: America/Los Angeles
+
+sass:
+    style: compressed
+
+# File: _config.yml
+# webrick:
+#     headers:
+#         My-Header: My-Value
+#         My-Other-Header: My-Other-Value
