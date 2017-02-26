@@ -1,24 +1,24 @@
-function [vEq, aEq, wEq] = analyticalebr(fL, doPlot)
+function [vEq, aEq, wEq] = analyticalebr(loadForce, doPlot)
 if nargin == 1
     doPlot = 'no';
 end
 
-n = 10; % nucleation rate
-kappa = 0.5; % capping rate
+kN = 10; % nucleation rate
+kC = 0.5; % capping rate
 d0 = 0.5; % free dissociation rate
-VMax = 500; % free polymerization rate
-VDep = 2.2; % free depolymerization rate
+vPolMax = 500; % free polymerization rate
+vDep = 2.2; % free depolymerization rate
 l = 2.2; % average length increment
 kT = 4.1; % thermal energy
 fb = 10; % strength of attachment bond
 k = 1; % spring constant
-V0 = fb * d0 / k;
+v0 = fb * d0 / k;
 
 % Non-dimensional variables
-e1 = (fb * l / kT) * (kappa / d0);
-e2 = VMax / V0;
-e3 = VDep / V0;
-e4 = (fL * l / kT) * (kappa / n);
+e1 = (fb * l / kT) * (kC / d0);
+e2 = vPolMax / v0;
+e3 = vDep / v0;
+e4 = (loadForce * l / kT) * (kC / kN);
 
 v = linspace(0, 25, 1000);
 wv = arrayfun(@(x) w(x), v);
@@ -26,8 +26,8 @@ wv2 = wv.^2;
 rhs = e2 * exp(-e1 * v .* wv2 - e4 ./ wv) - e3;
 delta = abs(v - rhs);
 vEq = v(delta == min(delta));
-aEq = n / d0 * w(vEq);
-wEq = n / kappa;
+aEq = kN / d0 * w(vEq);
+wEq = kN / kC;
 
 % Plot.
 if strcmp(doPlot, 'yes')
