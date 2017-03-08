@@ -1,4 +1,4 @@
-function [vEq, aEq, wEq] = analyticalebr(loadForce, doPlot)
+function [vEq, aEq, wEq] = analyticalautoebrnpf(loadForce, doPlot)
 if nargin == 1
     doPlot = 'no';
 end
@@ -14,11 +14,16 @@ fb = 10; % strength of attachment bond
 k = 1; % spring constant
 v0 = fb * d0 / k;
 
+% Additional variables from autocatalytic and NPF model.
+W0 = 1;
+kA = 1;
+kP = vPolMax / l;
+
 % Non-dimensional variables
 e1 = (fb * l / kT) * (kC / d0);
 e2 = vPolMax / v0;
 e3 = vDep / v0;
-e4 = (loadForce * l / kT) * (kC / kN);
+e4 = (loadForce * l) / kT / W0 / kA / kN * kC * kP;
 
 v = linspace(0, 25, 1000);
 wv = arrayfun(@(x) w(x), v);
@@ -26,8 +31,8 @@ wv2 = wv.^2;
 rhs = e2 * exp(-e1 * v .* wv2 - e4) - e3;
 delta = abs(v - rhs);
 vEq = v(delta == min(delta));
-aEq = kN / d0 * w(vEq);
-wEq = kN / kC;
+wEq = W0 * (kA / kC) * (kN / kP);
+aEq = kC / d0 * w(vEq) * wEq;
 
 % Plot.
 if strcmp(doPlot, 'yes')
