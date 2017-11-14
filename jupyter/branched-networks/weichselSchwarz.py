@@ -1,5 +1,5 @@
 # Import libraries
-from numpy import flatnonzero, logical_and, array,matrix,arange,cumsum,linspace,append,gradient,delete,all,in1d,histogram,around,amax,amin,mean,cos,sin,cosh,arctan,arctan2,exp,log,pi,meshgrid,median,argmax,NaN
+from numpy import sort,flatnonzero, logical_and, array,matrix,arange,cumsum,linspace,append,gradient,delete,all,in1d,histogram,around,amax,amin,mean,cos,sin,cosh,arctan,arctan2,exp,log,pi,meshgrid,median,argmax,NaN
 from scipy.stats import kurtosis
 from numpy.random import poisson,normal,randint,uniform,binomial,choice,exponential
 from numpy.linalg import norm
@@ -9,14 +9,15 @@ from os import system,getcwd
 
 # Function definitions
 def heavisidePi(x, dx):
-    if x < dx / 2.0 and x >= -dx:
+    """Limits reaction to a points within dx away from the leading edge"""
+    if x < 0.0 and x >= -dx:
         return 1.0
     else:
         return 0.0
 
-def heavisideTheta(x, dx):
-    # Allows polymerization if filament is not in contact.
-    if x < -dx / 2.0:
+def heavisideTheta(x):
+    """Limits reactions to points behind leading edge"""
+    if x < 0.0:
         return 1.0
     else:
         return 0.0
@@ -38,13 +39,13 @@ def mode(xArray, binRes = 100):
 # Main class object.
 class network(object):
     # Initialization
-    def __init__(n, rLamba, rBeta, rKappa, xSeed, dxSeed, branchTheta = 1.3003, branchSigma = 0.1354, networkVel = 1000.0, forceDirection = True,                              recordHistory = False):
+    def __init__(n, rLamba, rBeta, rKappa, xSeed, dxSeed, branchTheta = 70 / 180 * pi, branchSigma = 5 / 180 * pi, nFront = 0, forceDirection = True, recordHistory = False):
         n.rLambda = rLamba
         n.rBeta = rBeta
         n.rKappa = rKappa
         n.branchTheta = branchTheta
         n.branchSigma = branchSigma
-        n.v = networkVel
+        n.nFront = nFront
         # Move network so the offset in the x direction is zero.
         xSeed.T[0] -= amin(xSeed.T[0])
         n.xBoundary = amax(xSeed.T[0])
@@ -67,6 +68,7 @@ class network(object):
         n.Monomers = list(zip(xSeed, dxSeed))
         n.Branches = []
         n.Caps = []
+        n.yNet = array([0.0])
 
     def xPeriodic(n, rArray):
         """Enforces periodic boundary conditions in the x direction"""
@@ -117,25 +119,27 @@ class network(object):
             n.Caps += [(r, dr)]
             
     def timeStep(n, dt, Fext = 0.0):
-        n.D = n.nBarbed / n.xBoundary
-        dxEdge = array([x[1] - n.xEdge for x, dx in n.Frontier])
-        isFree = dxEdge < -n.monomerSize
-        isActive = dxEdge >= -2 * n.monomerSize
+        # Figure out which are the nFront top filaments.
+        yFil = array([x[1] for x, dx in n.Frontier])
+        yFilSorted = sort(yFil)
+        yLastFront = yFilSorted[-1 - n.nFront]
+        isFree = yFil <= yLastFront
+        isActive = yFil > (yLastFront - 2 * n.monomerSize)
         noActive = sum(logical_and(isFree, isActive))
         i = 0
         for x, dx in n.Frontier:
             # Elongate.
-            polRate = n.rLambda(x[0], x[1] - n.xEdge, n.tElapsed)
+            polRate = n.rLambda(x[0], x[1] - yLastFront, n.tElapsed)
             if polRate > 0.0:
                 n.elongate(i)
             # Cap.
-            capRate = n.rKappa(x[0], x[1] - n.xEdge, n.tElapsed) * dt * noActive
+            capRate = n.rKappa(x[0], x[1] - yLastFront, n.tElapsed) * dt
             if capRate > 0.0:
                 if exponential(scale = 1.0 / capRate, size = 1) <= dt:
                     n.cap(i)
                     continue
             # Branch.
-            branchRate = n.rBeta(x[0], x[1] - n.xEdge, n.tElapsed) * dt
+            branchRate = n.rBeta(x[0], x[1] - yLastFront, n.tElapsed) * dt / noActive
             if branchRate > 0.0:
                 if exponential(scale = 1.0 / branchRate, size = 1) <= dt:
                     n.branch(i)
@@ -143,7 +147,9 @@ class network(object):
                     
         # Update network.
         n.tElapsed += dt
-        n.xEdge += n.v * dt
+        n.xEdge = amax(array([x[1] for x, dx in n.Frontier]))
+        if n.recordHistory == True:
+            n.yNet = append(n.yNet, [n.xEdge])
         
     def evolve(n, dt, tFinal, Fext = 0.0):
         while n.nBarbed != 0 and n.tElapsed <= tFinal:
@@ -246,21 +252,20 @@ class network(object):
     def plotAngles(n):
         # Generate histogram
         angleHistogram = figure(figsize = (8, 8))
-        hist, bins = histogram(n.getAngles(n.Frontier), bins = 40, normed = False)
+        hist, bins = histogram(n.getAngles(n.Frontier), bins = 37, normed = False)
         centers = (bins[1:] + bins[:-1]) / 2.0
         
         # Plot polar histogram.
         ax = subplot(111, projection = "polar")
-        ax.bar(centers, hist, color =  'g', width = 2 * pi / 40, edgecolor = "none", align = "center")
+        ax.bar(centers, hist, color =  'g', width = 2 * pi / 37, edgecolor = "none", align = "center")
         ax.tick_params(labelsize = 16)
         
         # Labels.
         ax.set_xlabel(r"Elongating filament angles, $\phi$ / $^{o}$", fontsize = 28)
-        ax.set_theta_zero_location('E')
-        ax.set_theta_direction('clockwise')
-        ax.set_ylim(0, 25)
+        #ax.set_theta_zero_location('E')
+        #ax.set_theta_direction('clockwise')
+        #ax.set_ylim(0, 25)
         ax.set_yticks(array([0]))
-        ax.set_xticks(array([-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90, NaN, 180]) / 180 * pi)
         return angleHistogram
         
                            
